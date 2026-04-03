@@ -1,2 +1,2 @@
 FROM ghcr.io/isso-comments/isso:release
-COPY isso.conf /config/isso.conf
+COPY isso.cfg /config/isso.cfg
