@@ -118,12 +118,7 @@ body {
 #file-list::-webkit-scrollbar { width:3px; }
 #file-list::-webkit-scrollbar-thumb { background: var(--border); border-radius:2px; }
 
-.fi {
-  display:flex; align-items:center; gap:8px;
-  padding: 9px 10px; border-radius: var(--r-s);
-  cursor: pointer; transition: background .1s;
-  position: relative;
-}
+
 .fi:hover { background: var(--bg); }
 .fi.active { background: var(--border-soft); }
 
@@ -261,43 +256,55 @@ body {
 #editor::placeholder { color:var(--ghost); font-style:italic; }
 #editor::-webkit-scrollbar { width:4px; }
 #editor::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
-/* ファイルアイテムの枠組み */
-
-/* 削除ボタン本体 */
-/* 古い .fi-del と .fi:hover .fi-del は削除し、以下に差し替え */
-.fi-del {
-  position: relative;
-  z-index: 10;          /* バツを最前面に持ってくる */
-  background: rgba(0, 0, 0, 0.05); 
-  border: none;
-  font-size: 14px;      /* 少し大きくする */
-  color: var(--soft);
-  cursor: pointer;
-  width: 34px;          /* タップしやすくサイズを固定 */
-  height: 34px;
+/* 親要素：右側にボタンを置くためのスペース（padding-right）を確保 */
+.fi {
   display: flex;
   align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  margin-left: 8px;
-  flex-shrink: 0;       /* 潰れないように固定 */
+  gap: 8px;
+  padding: 9px 44px 9px 10px; /* 右側に44pxの余白を強制 */
+  border-radius: var(--r-s);
+  cursor: pointer;
+  transition: background .1s;
+  position: relative; /* 絶対配置の基準にする */
+  overflow: hidden;
+}
+
+/* 削除ボタン：絶対配置で右端に固定 */
+.fi-del {
+  position: absolute !important;
+  right: 6px;           /* 右端から6pxの位置 */
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 50;          /* 最前面に配置 */
   
-  /* 透明度の強制解除 */
-  opacity: 1 !important; 
+  width: 32px;
+  height: 32px;
+  display: flex !important; /* 強制表示 */
+  align-items: center;
+  justify-content: center;
+  
+  background: rgba(0, 0, 0, 0.06) !important; /* 常に薄く背景を出す */
+  border: none;
+  border-radius: 4px;
+  color: var(--mid) !important;
+  font-size: 14px;
+  cursor: pointer;
+  
+  /* 透明度設定を完全に無効化して常時表示 */
+  opacity: 1 !important;
   visibility: visible !important;
+  transition: all .1s;
 }
 
-/* ホバー時（PC） */
+/* ホバー・アクティブ時の反応 */
 .fi-del:hover {
-  background: var(--ng);
-  color: #fff;
+  background: var(--ng) !important;
+  color: #fff !important;
 }
 
-/* タップ時（Android） */
 .fi-del:active {
-  background: var(--ng);
-  color: #fff;
-  transform: scale(0.9); /* 押した感触を出す */
+  background: var(--ng) !important;
+  transform: translateY(-50%) scale(0.9);
 }
 
 
