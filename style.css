@@ -502,34 +502,49 @@ body.focus #editor { padding-top:80px; }
   *,*::before,*::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
 }
 /* ══════════════════════════════════════════════
-   コントラスト問題の解消：背景色に関わらず「✕」を浮き彫りにする
+   【最終回答】背景と同化させない「絶対視認」設定
+   変数(var)を一切使わず、どんな背景でも浮き出るようにします
 ══════════════════════════════════════════════ */
 
-/* 1. ボタン自体の背景を、周囲とハッキリ区別できる色にする */
+/* ボタンの土台を「濃いグレー」で固定し、周囲の淡い色から引き離す */
 .fi-del {
-    background-color: #dcd7cf !important; /* 周囲（--bg, --surface）より一段暗い色 */
-    color: #2a2520 !important;           /* --ink と同じ色で✕を表示 */
-    border: 1px solid #c5c0b8 !important; /* 境界線を明確にする */
+  background-color: #4a4540 !important; /* はっきり見える濃い茶色 */
+  color: #ffffff !important;           /* 文字は絶対の白 */
+  border: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  
+  /* レイアウト固定 */
+  position: absolute !important;
+  right: 8px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 24px !important;
+  height: 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 4px !important;
+  z-index: 999 !important;
 }
 
-/* 2. ファイルが選択状態 (.active) になってもボタンの色を維持 */
+/* 選択中 (.active) の時も、背景の薄いグレーに負けないように色を維持 */
 .fi.active .fi-del {
-    background-color: #e6e2db !important; /* アクティブ時の背景でも埋もれない色 */
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* 影をつけて立体的にする */
+  background-color: #2a2520 !important; /* さらに濃くしてコントラストを最大化 */
+  box-shadow: 0 0 0 1px #fff;            /* 白い縁取りをつけて背景と分離 */
 }
 
-/* 3. ホバー・クリック時は「削除」を連想させる赤系へ（コントラスト最大） */
+/* ホバー時は鮮やかな赤に */
 .fi-del:hover {
-    background-color: #a86060 !important; /* --ng の色 */
-    color: #ffffff !important;           /* 文字は白 */
-    border-color: #a86060 !important;
+  background-color: #e63946 !important; /* 警告色としての赤 */
 }
 
-/* 4. ✕印を確実に真ん中へ（文字化け対策で sans-serif 指定） */
+/* ボタンの中の ✕ 自体も太く、はっきりと */
 .fi-del::before {
-    content: "✕" !important;
-    font-size: 14px !important;
-    font-weight: bold !important;
-    line-height: 1 !important;
-    font-family: sans-serif !important;
+  content: "✕" !important;
+  font-family: sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
+  color: #ffffff !important;
+  line-height: 1 !important;
 }
