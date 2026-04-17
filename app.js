@@ -544,6 +544,7 @@ document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () =>
 
 /* ── QR ── */
 /* ── QR ── */
+/* ── QR 生成ロジック（最終調整版） ── */
 function generateQR() {
   const canvas = $('qr-canvas');
   const ph     = $('qr-placeholder');
@@ -552,27 +553,23 @@ function generateQR() {
   const text   = editor.value.trim();
 
   if (!text) {
-    note.textContent = 'テキストを入力してから生成してください';
+    note.textContent = 'テキストを入力してください';
     return;
   }
 
-  // ライブラリの存在確認
   if (typeof QRCode === 'undefined') {
-    note.textContent = 'エラー: QR生成ライブラリを読み込めません';
+    note.textContent = 'エラー: ライブラリが読み込まれていません';
     return;
   }
 
-  // 日本語を考慮した容量制限（安全のため約2000バイトに抑える）
-  // 3バイト文字を考慮すると約650文字程度が安全圏
-  const MAX_BYTES = 2000;
+  // 日本語を考慮した安全な制限
+  const MAX_BYTES = 2000; 
+  const encoder = new TextEncoder();
   let payload = text;
   let truncated = false;
 
-  // 簡易的なバイト数チェック（TextEncoderを使用）
-  const encoder = new TextEncoder();
   if (encoder.encode(text).length > MAX_BYTES) {
-    // 安全な長さにカット（ここでは文字数で近似）
-    payload = text.slice(0, 600); 
+    payload = text.slice(0, 600); // 余裕を持ってカット
     truncated = true;
   }
 
@@ -580,31 +577,33 @@ function generateQR() {
   ph.style.display = 'none';
 
   try {
-    QRCode.toCanvas(canvas, payload, {
+    // 日本語対応のためのエンコード処理を追加
+    const safePayload = unescape(encodeURIComponent(payload));
+
+    QRCode.toCanvas(canvas, safePayload, {
       width: 210,
       margin: 2,
-      errorCorrectionLevel: 'M',
+      errorCorrectionLevel: 'L', // 容量を稼ぐために 'L' を推奨
       color: { dark: '#2a2520', light: '#ffffff' }
     }, err => {
       if (err) {
-        console.error(err);
+        console.error('QR Error:', err);
         ph.style.display = 'block';
         canvas.style.display = 'none';
-        note.textContent = 'エラー: データの制限を超えています';
+        note.textContent = 'エラー: 文字数を減らしてください';
         dlBtn.style.display = 'none';
         return;
       }
       canvas.style.display = 'block';
       dlBtn.style.display  = 'inline-flex';
       note.textContent = truncated
-        ? `容量制限のため一部省略されました（全 ${text.length} 文字）`
-        : `${text.length} 文字のQRコードを生成しました`;
+        ? `容量制限で短縮されました（全 ${text.length} 文字）`
+        : `${text.length} 文字のQRを生成しました`;
     });
   } catch (e) {
-    // 予期せぬクラッシュを捕捉
-    console.error('QR Generation Crash:', e);
+    console.error('Crash:', e);
     ph.style.display = 'block';
-    note.textContent = '生成中にエラーが発生しました';
+    note.textContent = '生成エラーが発生しました';
   }
 }
 
