@@ -546,29 +546,53 @@ document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () =>
 /* ── QR ── */
 /* ── QR 生成ロジック（最終調整版） ── */
 function generateQR() {
-  const canvas = $('qr-canvas');
-  const note   = $('qr-note');
-  const text   = editor.value.trim();
+  const canvas = document.getElementById('qr-canvas');
+  const note   = document.getElementById('qr-note');
+  const ph     = document.getElementById('qr-placeholder');
+  const editor = document.getElementById('editor');
+
+  if (!canvas || !editor) return;
+  const text = editor.value.trim();
 
   if (!text) {
     note.textContent = 'テキストを入力してください';
     return;
   }
 
-  // qrcode-generator (UTF8版) の初期化
-  // typeNumber: 0 (自動), errorCorrectionLevel: 'L'
+  // ライブラリの存在を再確認
+  if (typeof qrcode === 'undefined') {
+    note.textContent = 'エラー: qrcode_UTF8.js が読み込まれていません';
+    return;
+  }
+
   try {
-    const qr = qrcode(0, 'L');
-    qr.addData(text); // 日本語をそのまま渡してOK
+    /* ドキュメント準拠の修正：
+       1. typeNumber を 0 (自動) ではなく、最小の 1 から開始させる。
+       2. 誤り訂正レベルを明示。
+    */
+    const typeNumber = 0; 
+    const errorCorrectionLevel = 'L';
+    const qr = qrcode(typeNumber, errorCorrectionLevel);
+
+    /* 重要：UTF8版の場合、addDataの第2引数にモードを指定しないと
+       内部のバイト判定でコケて「制限超え」の誤判定を出すことがあります。
+    */
+    qr.addData(text, 'Byte'); 
     qr.make();
 
-    // Canvasへの描画（セルサイズ4、余白2）
-    const cellSize = 4;
-    const margin = 2;
+    // 描画処理：Canvasが非表示だとサイズ計算に失敗するため、先に表示
+    ph.style.display = 'none';
+    canvas.style.display = 'block';
+
     const moduleCount = qr.getModuleCount();
+    const margin = 2;
+    const cellSize = Math.floor(210 / (moduleCount + margin * 2)) || 2;
+    
     canvas.width = canvas.height = (moduleCount + margin * 2) * cellSize;
 
     const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Canvas context failed');
+
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = '#2a2520';
@@ -576,21 +600,28 @@ function generateQR() {
     for (let r = 0; r < moduleCount; r++) {
       for (let c = 0; c < moduleCount; c++) {
         if (qr.isDark(r, c)) {
-          ctx.fillRect((c + margin) * cellSize, (r + margin) * cellSize, cellSize, cellSize);
+          ctx.fillRect(
+            (c + margin) * cellSize, 
+            (r + margin) * cellSize, 
+            cellSize, 
+            cellSize
+          );
         }
       }
     }
 
-    $('qr-placeholder').style.display = 'none';
-    canvas.style.display = 'block';
-    $('btn-qr-dl').style.display = 'inline-flex';
     note.textContent = `${text.length} 文字のQRを生成しました`;
+    if ($('btn-qr-dl')) $('btn-qr-dl').style.display = 'inline-flex';
 
   } catch (e) {
-    console.error(e);
-    note.textContent = '生成エラー: データ量が制限を超えています';
+    console.error('QR Failure Details:', e);
+    // e.message に具体的な理由（'Invalid type number' など）が含まれるはずです
+    note.textContent = '生成失敗: ' + (e.message || '設定に問題があります');
+    canvas.style.display = 'none';
+    ph.style.display = 'block';
   }
 }
+
 
 function downloadQR() {
   const canvas = $('qr-canvas');
