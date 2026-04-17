@@ -501,3 +501,40 @@ body.focus #editor { padding-top:80px; }
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
 }
+/* --- 状態に関わらず×を固定表示する設定 --- */
+
+/* 1. ボタン自体の存在を、選択状態（.active）に関わらず最前面に固定 */
+.fi .fi-del {
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    z-index: 100 !important;
+    background: rgba(42, 37, 32, 0.1) !important; /* 少し濃いめの背景 */
+}
+
+/* 2. 内部の×印を、文字ではなく「図形」として描く（フォルト等の影響を排除） */
+.fi-del::before, .fi-del::after {
+    content: "" !important;
+    position: absolute !important;
+    width: 12px !important;
+    height: 2px !important;
+    background-color: var(--mid) !important;
+    transition: background-color 0.1s;
+}
+
+.fi-del::before { transform: rotate(45deg) !important; }
+.fi-del::after  { transform: rotate(-45deg) !important; }
+
+/* 3. ホバー時は赤く、押した（active）瞬間は少し小さくしてフィードバックを出す */
+.fi-del:hover::before, .fi-del:hover::after {
+    background-color: #ffffff !important;
+}
+
+.fi-del:hover {
+    background-color: var(--ng) !important;
+}
+
+.fi-del:active {
+    transform: translateY(-50%) scale(0.85) !important;
+}
+
