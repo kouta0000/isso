@@ -502,23 +502,38 @@ body.focus #editor { padding-top:80px; }
   *,*::before,*::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
 }
 
-/* 既存の隠蔽ルールを詳細度で強制オーバーライド */
-#sidebar #file-list .fi .fi-del {
-    opacity: 1 !important;
-    visibility: visible !important;
+/* 削除ボタンの控えめな調整 */
+#file-list .fi .fi-del {
     display: flex !important;
-    background-color: #55504a !important; /* 視認性を担保する背景色 */
-    color: #ffffff !important;
-    z-index: 9999 !important;
+    visibility: visible !important;
+    opacity: 0.3 !important; /* 普段はかなり薄く */
+    background: transparent !important; /* 背景は抜く */
+    color: currentColor !important; /* 文字色に合わせる */
+    border: none !important;
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 14px !important;
+    transition: opacity 0.2s ease, transform 0.2s ease !important;
+    cursor: pointer !important;
+    flex-shrink: 0 !important;
 }
 
-/* 非アクティブ（選択外）の時もボタンの存在を明示 */
-#sidebar #file-list .fi:not(.active) .fi-del {
-    background-color: #88827c !important;
+/* ホバーまたはタップ時にだけ少し強調 */
+#file-list .fi .fi-del:hover,
+#file-list .fi .fi-del:active {
+    opacity: 0.8 !important;
+    transform: scale(1.1) !important;
 }
 
-/* ホバー/タップ時の反応 */
-#sidebar #file-list .fi .fi-del:hover,
-#sidebar #file-list .fi .fi-del:active {
-    background-color: #a86060 !important;
+/* Activeな行のボタンは、もう少しだけ見えやすく（任意） */
+#file-list .fi.active .fi-del {
+    opacity: 0.5 !important;
+}
+
+/* レイアウトの崩れ防止（念のため） */
+#file-list .fi {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding-right: 4px !important;
 }
