@@ -443,10 +443,13 @@ function renderFileList() {
   fileList.innerHTML = '';
   if (files.length === 0) { sbEmpty.classList.add('show'); return; }
   sbEmpty.classList.remove('show');
+
   files.forEach(f => {
     const el = document.createElement('div');
     el.className = 'fi' + (f.id === S.id ? ' active' : '');
     const preview = (f.content||'').split('\n')[0].replace(/^#+\s*/,'').slice(0,36) || '(空)';
+    
+    // HTML構造: 削除用のボタンを追加
     el.innerHTML = `
       <span class="fi-icon">◇</span>
       <div class="fi-info">
@@ -454,27 +457,45 @@ function renderFileList() {
         <div class="fi-meta">${fmtDate(f.updatedAt)} · ${esc(preview)}</div>
       </div>
       <button class="fi-del" data-id="${f.id}" title="削除">✕</button>`;
+
+    // ファイルを選択して開くイベント
     el.addEventListener('click', e => {
       if (e.target.classList.contains('fi-del')) return;
       if (S.modified && !confirm('変更が保存されていません。切り替えますか？')) return;
-      clearTimeout(asTimer); fsFileHandle = null;
+      clearTimeout(asTimer); 
+      fsFileHandle = null;
       const rec = dbGet(f.id);
       if (rec) { loadIntoEditor(rec); renderFileList(); closeSidebar(); }
     });
+
+    // ✕ボタンを押した時の削除イベント
     el.querySelector('.fi-del').addEventListener('click', e => {
-      e.stopPropagation();
-      if (!confirm(`「${f.name}」を削除しますか？`)) return;
-      const remaining = dbDelete(f.id);
-      if (f.id === S.id) {
-        if (remaining.length > 0) { clearTimeout(asTimer); fsFileHandle=null; loadIntoEditor(remaining[0]); }
-        else { clearTimeout(asTimer); fsFileHandle=null; const r=dbCreate('untitled',''); loadIntoEditor(r); }
+      e.stopPropagation(); // 親要素の「ファイルを開く」イベントを阻止
+      if (!confirm(`「${f.name}」を完全に削除しますか？`)) return;
+      
+      const idToDelete = e.target.dataset.id;
+      const remaining = dbDelete(idToDelete);
+
+      // 削除したのが現在編集中のファイルだった場合、次のファイルを表示
+      if (idToDelete === S.id) {
+        clearTimeout(asTimer);
+        fsFileHandle = null;
+        if (remaining.length > 0) {
+          loadIntoEditor(remaining[0]);
+        } else {
+          // ファイルがゼロになったら新規作成
+          const rec = dbCreate('untitled', '');
+          loadIntoEditor(rec);
+        }
       }
       renderFileList();
       toast('削除しました');
     });
+
     fileList.appendChild(el);
   });
 }
+
 
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
