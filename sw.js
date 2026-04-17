@@ -3,10 +3,13 @@ const CACHE_NAME = 'shizuku-v1';
 const urlsToCache = [
   './',
   './index.html',
+  './style.css',
+  './app.js',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png'
   './qr/qrcode.js',
   './qr/qrcode_UTF8.js',
-  './app.js',
-  './style.css' // CSSファイルがあれば
 ];
 
 // インストール時にファイルをキャッシュ
