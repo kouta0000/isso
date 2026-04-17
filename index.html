@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>しずく — markdown editor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500&family=Noto+Serif+JP:wght@300;400&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div id="grain"></div>
+<div id="app">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside id="sidebar">
+    <div id="sidebar-header">
+      <span id="sidebar-title">ファイル一覧</span>
+      <button id="btn-sidebar-close" class="icon-btn">✕</button>
+    </div>
+    <div id="sidebar-actions">
+      <button id="btn-new-file" class="sidebar-new-btn">＋ 新規作成</button>
+      <button id="btn-import-file" class="sidebar-new-btn secondary">↑ 読み込む</button>
+    </div>
+    <div id="file-list"></div>
+    <div id="sidebar-empty">
+      <div class="empty-icon">◇</div>
+      <p>ファイルがありません</p>
+      <p class="sub">保存するとここに表示されます</p>
+    </div>
+  </aside>
+  <div id="sidebar-overlay"></div>
+
+  <!-- ═══ MAIN ═══ -->
+  <div id="main">
+
+    <header id="topbar">
+      <div id="topbar-left">
+        <button id="btn-files" class="nav-btn" title="ファイル">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <rect x="2" y="4" width="14" height="1.4" rx="0.7" fill="currentColor"/>
+            <rect x="2" y="8.3" width="14" height="1.4" rx="0.7" fill="currentColor"/>
+            <rect x="2" y="12.6" width="9" height="1.4" rx="0.7" fill="currentColor"/>
+          </svg>
+        </button>
+        <div id="logo">しずく</div>
+      </div>
+
+      <div id="topbar-center">
+        <div id="filename-wrap">
+          <input id="filename" type="text" value="untitled" spellcheck="false" autocomplete="off" />
+          <span id="ext">.md</span>
+          <span id="save-dot"></span>
+        </div>
+      </div>
+
+      <div id="topbar-right">
+        <button class="nav-btn" id="btn-preview" title="プレビュー (⌘P)">
+          <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
+            <path d="M8.5 3.5C5 3.5 2 8.5 2 8.5s3 5 6.5 5 6.5-5 6.5-5-3-5-6.5-5z" stroke="currentColor" stroke-width="1.3" fill="none"/>
+            <circle cx="8.5" cy="8.5" r="2.2" stroke="currentColor" stroke-width="1.3" fill="none"/>
+          </svg>
+        </button>
+        <button class="nav-btn" id="btn-share" title="共有">
+          <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
+            <circle cx="13" cy="4" r="2" stroke="currentColor" stroke-width="1.3" fill="none"/>
+            <circle cx="4" cy="8.5" r="2" stroke="currentColor" stroke-width="1.3" fill="none"/>
+            <circle cx="13" cy="13" r="2" stroke="currentColor" stroke-width="1.3" fill="none"/>
+            <line x1="5.9" y1="7.5" x2="11.1" y2="5" stroke="currentColor" stroke-width="1.3"/>
+            <line x1="5.9" y1="9.5" x2="11.1" y2="12" stroke="currentColor" stroke-width="1.3"/>
+          </svg>
+        </button>
+        <button class="nav-btn" id="btn-focus" title="フォーカスモード (⌘.)">
+          <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
+            <path d="M2.5 6V3h3M11.5 3h3v3M14.5 11v3h-3M6 14.5H3v-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <button class="nav-btn save-btn" id="btn-save" title="保存 (⌘S)">保存</button>
+      </div>
+    </header>
+
+    <div id="content-area">
+      <div id="editor-pane">
+        <textarea id="editor"
+          spellcheck="false"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          placeholder="ここに書き始める…&#10;&#10;# 見出し&#10;**太字** *斜体* `コード`"></textarea>
+      </div>
+      <div id="preview-pane" class="hidden">
+        <div id="preview-content"></div>
+      </div>
+    </div>
+
+    <footer id="statusbar">
+      <div id="status-left">
+        <span id="word-count">0 文字</span>
+        <span class="status-sep">·</span>
+        <span id="line-count">1 行</span>
+      </div>
+      <div id="status-right">
+        <span id="autosave-status"></span>
+      </div>
+    </footer>
+
+  </div>
+</div>
+
+<!-- ═══ SHARE MODAL ═══ -->
+<div id="share-modal" class="modal hidden">
+  <div class="modal-backdrop" id="share-backdrop"></div>
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>共有</h2>
+      <button class="icon-btn" id="share-close">✕</button>
+    </div>
+
+    <div class="modal-tabs">
+      <button class="tab-btn active" data-tab="qr">QRコード</button>
+      <button class="tab-btn" data-tab="email">メール</button>
+      <button class="tab-btn" data-tab="copy">コピー</button>
+    </div>
+
+    <div class="tab-panel active" id="tab-qr">
+      <p class="tab-desc">QRコードをスキャンして他デバイスにテキストを転送</p>
+      <div id="qr-box">
+        <div id="qr-placeholder-icon">
+          <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+            <rect x="4" y="4" width="18" height="18" rx="2.5" stroke="currentColor" stroke-width="2" fill="none"/>
+            <rect x="8" y="8" width="10" height="10" rx="1.5" fill="currentColor" opacity="0.3"/>
+            <rect x="30" y="4" width="18" height="18" rx="2.5" stroke="currentColor" stroke-width="2" fill="none"/>
+            <rect x="34" y="8" width="10" height="10" rx="1.5" fill="currentColor" opacity="0.3"/>
+            <rect x="4" y="30" width="18" height="18" rx="2.5" stroke="currentColor" stroke-width="2" fill="none"/>
+            <rect x="8" y="34" width="10" height="10" rx="1.5" fill="currentColor" opacity="0.3"/>
+            <rect x="30" y="30" width="5" height="5" rx="1" fill="currentColor" opacity="0.3"/>
+            <rect x="39" y="30" width="5" height="5" rx="1" fill="currentColor" opacity="0.3"/>
+            <rect x="30" y="39" width="5" height="5" rx="1" fill="currentColor" opacity="0.3"/>
+            <rect x="39" y="39" width="5" height="5" rx="1" fill="currentColor" opacity="0.3"/>
+          </svg>
+        </div>
+        <canvas id="qr-canvas" style="display:none"></canvas>
+      </div>
+      <p id="qr-msg"></p>
+      <div class="tab-actions">
+        <button class="action-btn" id="btn-gen-qr">生成する</button>
+        <button class="action-btn ghost" id="btn-dl-qr" style="display:none">保存する</button>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tab-email">
+      <p class="tab-desc">テキストをメールで送信</p>
+      <div class="form-group">
+        <label>送信先メールアドレス</label>
+        <input type="email" id="email-to" placeholder="example@email.com" />
+      </div>
+      <div class="form-group">
+        <label>件名</label>
+        <input type="text" id="email-subject" />
+      </div>
+      <div class="form-group">
+        <label>メモ（任意）</label>
+        <textarea id="email-msg" rows="2" placeholder="一言メモ…"></textarea>
+      </div>
+      <div class="info-note">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor" stroke-width="1.1"/><line x1="6.5" y1="5.5" x2="6.5" y2="9.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><circle cx="6.5" cy="3.8" r="0.6" fill="currentColor"/></svg>
+        Markdownテキストがメール本文に含まれます
+      </div>
+      <div class="tab-actions">
+        <button class="action-btn" id="btn-send-mail">メールを送信</button>
+      </div>
+      <div id="email-feedback"></div>
+    </div>
+
+    <div class="tab-panel" id="tab-copy">
+      <p class="tab-desc">テキストをクリップボードにコピー</p>
+      <div id="copy-preview"></div>
+      <div class="tab-actions">
+        <button class="action-btn" id="btn-copy-md">コピーする</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" aria-live="polite"></div>
+
+<input type="file" id="file-input" accept=".md,.txt" style="display:none" />
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
