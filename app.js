@@ -1,15 +1,11 @@
-/* ══════════════════════════════════════════════════════
-   しずく — app.js
-   File System Access API + localStorage fallback
-   Precision engineered.
-══════════════════════════════════════════════════════ */
-'use strict';
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('SW registered'))
+      .catch(err => console.log('SW failed', err));
+  });
+}
 
-/* ────────────────────────────────────────────────────
-   FILE SYSTEM ACCESS API
-   Chrome/Edge 86+ でローカルファイルを直接読み書きできる。
-   未対応ブラウザはダウンロード方式にフォールバック。
-──────────────────────────────────────────────────── */
 const FS_SUPPORTED = typeof window.showSaveFilePicker === 'function';
 
 // 現在開いているファイルハンドル（File System Access API）
