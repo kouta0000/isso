@@ -171,5 +171,12 @@
 <script src="qr/qrcode.js"></script>
 <script src="qr/qrcode_UTF8.js"></script>
 <script src="app.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js')
+      .then(() => console.log('Service Worker 登録完了'))
+      .catch(err => console.error('登録失敗', err));
+  }
+</script>
 </body>
 </html>
