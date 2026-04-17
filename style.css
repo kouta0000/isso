@@ -132,14 +132,7 @@ body {
   font-size:10px; color:var(--ghost); margin-top:1px;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
-.fi-del {
-  background:none; border:none; font-size:11px;
-  color:var(--ghost); cursor:pointer;
-  padding: 2px 4px; border-radius:3px;
-  opacity:0; transition:opacity .1s, color .1s;
-}
-.fi:hover .fi-del { opacity:1; }
-.fi-del:hover { color:var(--ng); }
+
 
 #sb-empty {
   padding: 28px 16px; text-align:center;
