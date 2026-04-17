@@ -552,24 +552,30 @@ function generateQR() {
   const dlBtn  = $('btn-qr-dl');
   const text   = editor.value.trim();
 
+  // 1. 入力チェック
   if (!text) {
     note.textContent = 'テキストを入力してください';
     return;
   }
 
+  // 2. ライブラリ読み込みチェック
   if (typeof QRCode === 'undefined') {
     note.textContent = 'エラー: ライブラリが読み込まれていません';
+    console.error('QRCode library is missing.');
     return;
   }
 
-  // 日本語を考慮した安全な制限
-  const MAX_BYTES = 2000; 
+  // 3. 日本語対応と容量制限
+  // QRコードの物理的限界と、日本語（1文字3バイト）を考慮した制限
+  const MAX_BYTES = 1200; 
   const encoder = new TextEncoder();
   let payload = text;
   let truncated = false;
 
+  // バイト数で判定
   if (encoder.encode(text).length > MAX_BYTES) {
-    payload = text.slice(0, 600); // 余裕を持ってカット
+    // 安全のため、文字数ベースで約400文字にカット
+    payload = text.slice(0, 400); 
     truncated = true;
   }
 
@@ -577,36 +583,41 @@ function generateQR() {
   ph.style.display = 'none';
 
   try {
-    // 日本語対応のためのエンコード処理を追加
-    const safePayload = unescape(encodeURIComponent(payload));
+    /* 重要: 日本語（UTF-8）をQRライブラリが正しく扱える形式に変換します。
+       この処理がないと、マルチバイト文字で「生成エラー」が発生しやすくなります。
+    */
+    const utf8Payload = unescape(encodeURIComponent(payload));
 
-    QRCode.toCanvas(canvas, safePayload, {
+    QRCode.toCanvas(canvas, utf8Payload, {
       width: 210,
       margin: 2,
-      errorCorrectionLevel: 'L', // 容量を稼ぐために 'L' を推奨
+      // 誤り訂正レベルを 'L' (Low) に下げることで、より多くのデータを詰め込めます
+      errorCorrectionLevel: 'L', 
       color: { dark: '#2a2520', light: '#ffffff' }
     }, err => {
       if (err) {
-        console.error('QR Error:', err);
+        console.error('QRCode Error:', err);
         ph.style.display = 'block';
         canvas.style.display = 'none';
-        note.textContent = 'エラー: 文字数を減らしてください';
+        note.textContent = 'エラー: データ量が制限を超えています';
         dlBtn.style.display = 'none';
         return;
       }
+      
+      // 生成成功
       canvas.style.display = 'block';
       dlBtn.style.display  = 'inline-flex';
       note.textContent = truncated
-        ? `容量制限で短縮されました（全 ${text.length} 文字）`
-        : `${text.length} 文字のQRを生成しました`;
+        ? `容量制限により一部省略（全 ${text.length} 文字）`
+        : `${text.length} 文字のQRコードを生成しました`;
     });
   } catch (e) {
-    console.error('Crash:', e);
+    console.error('QR Generation Crash:', e);
     ph.style.display = 'block';
+    canvas.style.display = 'none';
     note.textContent = '生成エラーが発生しました';
   }
 }
-
 
 function downloadQR() {
   const canvas = $('qr-canvas');
