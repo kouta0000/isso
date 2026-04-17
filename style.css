@@ -502,49 +502,62 @@ body.focus #editor { padding-top:80px; }
   *,*::before,*::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
 }
 /* ══════════════════════════════════════════════
-   【最終回答】背景と同化させない「絶対視認」設定
-   変数(var)を一切使わず、どんな背景でも浮き出るようにします
+   バグ修正：非Active時も含め、✕ボタンを常に最前面へ
 ══════════════════════════════════════════════ */
 
-/* ボタンの土台を「濃いグレー」で固定し、周囲の淡い色から引き離す */
+/* 1. 親要素 (.fi) のスタック文脈をリセット */
+.fi {
+  position: relative !important;
+  overflow: visible !important; /* ボタンが枠外に判定されても消さない */
+  z-index: 1 !important;
+}
+
+/* 2. Activeでない状態でも、ボタンを強制的に「見える」状態にする */
 .fi-del {
-  background-color: #4a4540 !important; /* はっきり見える濃い茶色 */
-  color: #ffffff !important;           /* 文字は絶対の白 */
-  border: none !important;
+  /* 視認性の確保：白背景でもグレー背景でも絶対に見える「濃い茶色」 */
+  background-color: #5a5550 !important;
+  color: #ffffff !important;
+  
+  /* 構造の固定 */
+  position: absolute !important;
+  display: flex !important;
   opacity: 1 !important;
   visibility: visible !important;
+  pointer-events: auto !important;
   
-  /* レイアウト固定 */
-  position: absolute !important;
+  /* 重なりの順序：他のリスト要素のテキストより上に置く */
+  z-index: 999 !important;
+  
+  /* 配置の微調整 */
   right: 8px !important;
   top: 50% !important;
   transform: translateY(-50%) !important;
-  width: 24px !important;
-  height: 24px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+  width: 26px !important;
+  height: 26px !important;
   border-radius: 4px !important;
-  z-index: 999 !important;
+  border: none !important;
 }
 
-/* 選択中 (.active) の時も、背景の薄いグレーに負けないように色を維持 */
-.fi.active .fi-del {
-  background-color: #2a2520 !important; /* さらに濃くしてコントラストを最大化 */
-  box-shadow: 0 0 0 1px #fff;            /* 白い縁取りをつけて背景と分離 */
-}
-
-/* ホバー時は鮮やかな赤に */
-.fi-del:hover {
-  background-color: #e63946 !important; /* 警告色としての赤 */
-}
-
-/* ボタンの中の ✕ 自体も太く、はっきりと */
+/* 3. ✕印の描画（フォントに依存せず、確実に中央に配置） */
 .fi-del::before {
   content: "✕" !important;
   font-family: sans-serif !important;
-  font-size: 13px !important;
-  font-weight: 900 !important;
-  color: #ffffff !important;
+  font-size: 14px !important;
+  font-weight: bold !important;
   line-height: 1 !important;
+}
+
+/* 4. Active状態（選択中）になった時に色が同化するのを防ぐ */
+.fi.active {
+  z-index: 10 !important; /* 選択中の行を少し浮かせる */
+}
+
+.fi.active .fi-del {
+  background-color: #2a2520 !important; /* さらに濃くして、選択色のグレーに勝つ */
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.5) !important; /* 境界線を強調 */
+}
+
+/* 5. ホバー時は「削除」の赤 */
+.fi-del:hover {
+  background-color: #a86060 !important;
 }
