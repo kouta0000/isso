@@ -502,62 +502,54 @@ body.focus #editor { padding-top:80px; }
   *,*::before,*::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
 }
 /* ══════════════════════════════════════════════
-   バグ修正：非Active時も含め、✕ボタンを常に最前面へ
+   【最終解決】不透明度と色の完全固定
+   親要素の hover/active に一切左右されないボタンを定義
 ══════════════════════════════════════════════ */
 
-/* 1. 親要素 (.fi) のスタック文脈をリセット */
-.fi {
-  position: relative !important;
-  overflow: visible !important; /* ボタンが枠外に判定されても消さない */
-  z-index: 1 !important;
-}
-
-/* 2. Activeでない状態でも、ボタンを強制的に「見える」状態にする */
-.fi-del {
-  /* 視認性の確保：白背景でもグレー背景でも絶対に見える「濃い茶色」 */
-  background-color: #5a5550 !important;
-  color: #ffffff !important;
-  
-  /* 構造の固定 */
-  position: absolute !important;
-  display: flex !important;
+/* ボタンの透明度を1に固定し、変数を介さず直接色を指定 */
+.fi .fi-del {
   opacity: 1 !important;
   visibility: visible !important;
-  pointer-events: auto !important;
+  display: flex !important;
   
-  /* 重なりの順序：他のリスト要素のテキストより上に置く */
-  z-index: 999 !important;
+  /* 背景：和紙の背景 (#f6f3ef) から確実に浮き出る暗色 */
+  background-color: #55504a !important; 
+  color: #ffffff !important;           /* ✕印は白 */
   
-  /* 配置の微調整 */
-  right: 8px !important;
+  position: absolute !important;
+  right: 10px !important;
   top: 50% !important;
   transform: translateY(-50%) !important;
+  z-index: 9999 !important;
+  
   width: 26px !important;
   height: 26px !important;
   border-radius: 4px !important;
-  border: none !important;
+  pointer-events: auto !important;
 }
 
-/* 3. ✕印の描画（フォントに依存せず、確実に中央に配置） */
+/* ✕印：フォントに関わらず中央に太く表示 */
 .fi-del::before {
   content: "✕" !important;
-  font-family: sans-serif !important;
+  font-family: Arial, sans-serif !important;
   font-size: 14px !important;
-  font-weight: bold !important;
+  font-weight: 900 !important;
   line-height: 1 !important;
 }
 
-/* 4. Active状態（選択中）になった時に色が同化するのを防ぐ */
-.fi.active {
-  z-index: 10 !important; /* 選択中の行を少し浮かせる */
+/* 非アクティブな行でも、マウスが乗っていない時でも「見える」ように色を調整 */
+.fi:not(.active) .fi-del {
+  background-color: #7a7570 !important; /* 少しだけ明るくするが、絶対に見える色 */
 }
 
-.fi.active .fi-del {
-  background-color: #2a2520 !important; /* さらに濃くして、選択色のグレーに勝つ */
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.5) !important; /* 境界線を強調 */
-}
-
-/* 5. ホバー時は「削除」の赤 */
+/* ホバー時は即座に「赤」へ */
 .fi-del:hover {
-  background-color: #a86060 !important;
+  background-color: #a86060 !important; /* --ng の色 */
+  cursor: pointer !important;
+}
+
+/* Active状態の背景 (--border-soft) に負けないための境界線 */
+.fi.active .fi-del {
+  background-color: #2a2520 !important;
+  box-shadow: 0 0 0 1px #fff;
 }
