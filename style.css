@@ -501,55 +501,24 @@ body.focus #editor { padding-top:80px; }
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
 }
-/* ══════════════════════════════════════════════
-   【最終解決】不透明度と色の完全固定
-   親要素の hover/active に一切左右されないボタンを定義
-══════════════════════════════════════════════ */
 
-/* ボタンの透明度を1に固定し、変数を介さず直接色を指定 */
-.fi .fi-del {
-  opacity: 1 !important;
-  visibility: visible !important;
-  display: flex !important;
-  
-  /* 背景：和紙の背景 (#f6f3ef) から確実に浮き出る暗色 */
-  background-color: #55504a !important; 
-  color: #ffffff !important;           /* ✕印は白 */
-  
-  position: absolute !important;
-  right: 10px !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  z-index: 9999 !important;
-  
-  width: 26px !important;
-  height: 26px !important;
-  border-radius: 4px !important;
-  pointer-events: auto !important;
+/* 既存の隠蔽ルールを詳細度で強制オーバーライド */
+#sidebar #file-list .fi .fi-del {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+    background-color: #55504a !important; /* 視認性を担保する背景色 */
+    color: #ffffff !important;
+    z-index: 9999 !important;
 }
 
-/* ✕印：フォントに関わらず中央に太く表示 */
-.fi-del::before {
-  content: "✕" !important;
-  font-family: Arial, sans-serif !important;
-  font-size: 14px !important;
-  font-weight: 900 !important;
-  line-height: 1 !important;
+/* 非アクティブ（選択外）の時もボタンの存在を明示 */
+#sidebar #file-list .fi:not(.active) .fi-del {
+    background-color: #88827c !important;
 }
 
-/* 非アクティブな行でも、マウスが乗っていない時でも「見える」ように色を調整 */
-.fi:not(.active) .fi-del {
-  background-color: #7a7570 !important; /* 少しだけ明るくするが、絶対に見える色 */
-}
-
-/* ホバー時は即座に「赤」へ */
-.fi-del:hover {
-  background-color: #a86060 !important; /* --ng の色 */
-  cursor: pointer !important;
-}
-
-/* Active状態の背景 (--border-soft) に負けないための境界線 */
-.fi.active .fi-del {
-  background-color: #2a2520 !important;
-  box-shadow: 0 0 0 1px #fff;
+/* ホバー/タップ時の反応 */
+#sidebar #file-list .fi .fi-del:hover,
+#sidebar #file-list .fi .fi-del:active {
+    background-color: #a86060 !important;
 }
