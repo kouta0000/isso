@@ -262,36 +262,44 @@ body {
 #editor::-webkit-scrollbar { width:4px; }
 #editor::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
 /* ファイルアイテムの枠組み */
-.fi {
-  display: flex;
-  align-items: center;
-  justify-content: space-between; /* 名前とバツを両端に */
-  padding: 10px;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
-}
 
 /* 削除ボタン本体 */
+/* 古い .fi-del と .fi:hover .fi-del は削除し、以下に差し替え */
 .fi-del {
-  width: 32px;
-  height: 32px;
+  position: relative;
+  z-index: 10;          /* バツを最前面に持ってくる */
+  background: rgba(0, 0, 0, 0.05); 
+  border: none;
+  font-size: 14px;      /* 少し大きくする */
+  color: var(--soft);
+  cursor: pointer;
+  width: 34px;          /* タップしやすくサイズを固定 */
+  height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.05); /* 非常に薄い背景色をつけて存在を示す */
-  border: none;
   border-radius: 4px;
-  color: #888;
-  font-size: 16px;
-  cursor: pointer;
-  opacity: 1 !important; /* 透明度を強制的に1にする */
+  margin-left: 8px;
+  flex-shrink: 0;       /* 潰れないように固定 */
+  
+  /* 透明度の強制解除 */
+  opacity: 1 !important; 
   visibility: visible !important;
 }
 
-/* タップした時の反応（Androidタブレット向け） */
-.fi-del:active {
-  background: rgba(231, 76, 60, 0.2);
-  color: #e74c3c;
+/* ホバー時（PC） */
+.fi-del:hover {
+  background: var(--ng);
+  color: #fff;
 }
+
+/* タップ時（Android） */
+.fi-del:active {
+  background: var(--ng);
+  color: #fff;
+  transform: scale(0.9); /* 押した感触を出す */
+}
+
 
 
 /* ── Preview overlay (on top of editor) ── */
