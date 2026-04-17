@@ -261,6 +261,42 @@ body {
 #editor::placeholder { color:var(--ghost); font-style:italic; }
 #editor::-webkit-scrollbar { width:4px; }
 #editor::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+/* ファイルアイテムのレイアウト調整 */
+.fi {
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding: 10px;
+  /* ...既存のスタイル... */
+}
+
+/* 削除ボタンのスタイリング */
+.fi-del {
+  margin-left: auto;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text-color); /* あなたのテーマに合わせた色 */
+  opacity: 0.2;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.fi:hover .fi-del {
+  opacity: 0.6;
+}
+
+.fi-del:hover {
+  opacity: 1 !important;
+  background: rgba(231, 76, 60, 0.1); /* 削除を示唆する赤背景 */
+  color: #e74c3c;
+}
 
 /* ── Preview overlay (on top of editor) ── */
 #preview-wrap {
