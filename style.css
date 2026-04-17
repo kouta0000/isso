@@ -261,42 +261,38 @@ body {
 #editor::placeholder { color:var(--ghost); font-style:italic; }
 #editor::-webkit-scrollbar { width:4px; }
 #editor::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
-/* ファイルアイテムのレイアウト調整 */
+/* ファイルアイテムの枠組み */
 .fi {
   display: flex;
   align-items: center;
-  position: relative;
+  justify-content: space-between; /* 名前とバツを両端に */
   padding: 10px;
-  /* ...既存のスタイル... */
+  border-bottom: 1px solid rgba(0,0,0,0.05);
 }
 
-/* 削除ボタンのスタイリング */
+/* 削除ボタン本体 */
 .fi-del {
-  margin-left: auto;
   width: 32px;
   height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: none;
+  background: rgba(0, 0, 0, 0.05); /* 非常に薄い背景色をつけて存在を示す */
   border: none;
-  color: var(--text-color); /* あなたのテーマに合わせた色 */
-  opacity: 0.2;
+  border-radius: 4px;
+  color: #888;
   font-size: 16px;
   cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.2s;
+  opacity: 1 !important; /* 透明度を強制的に1にする */
+  visibility: visible !important;
 }
 
-.fi:hover .fi-del {
-  opacity: 0.6;
-}
-
-.fi-del:hover {
-  opacity: 1 !important;
-  background: rgba(231, 76, 60, 0.1); /* 削除を示唆する赤背景 */
+/* タップした時の反応（Androidタブレット向け） */
+.fi-del:active {
+  background: rgba(231, 76, 60, 0.2);
   color: #e74c3c;
 }
+
 
 /* ── Preview overlay (on top of editor) ── */
 #preview-wrap {
