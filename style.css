@@ -37,7 +37,7 @@ html, body { height: 100%; }
 body {
   font-family: var(--sans);
   font-weight: 300;
-  font-size: 14px;
+  font-size: 20px;
   background: var(--bg);
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
