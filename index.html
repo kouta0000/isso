@@ -211,6 +211,25 @@
   </div>
 </div>
 
+<div id="tpl-manager-modal" class="nf-modal-wrapper hidden">
+  <div class="nf-overlay" id="tpl-mgr-bg"></div>
+  <div class="nf-container" id="tpl-mgr-box">
+    <header class="nf-header">
+      <h2 class="nf-title">テンプレート管理</h2>
+      <button id="tpl-mgr-close" class="nf-close-btn">✕</button>
+    </header>
+    
+    <div class="nf-section">
+      <p class="fm-hint">テンプレート名と内容を編集できます。内容に <code>{{content}}</code> を含めると本文が挿入されます。</p>
+      <div id="tpl-list" class="tpl-list-container"></div>
+    </div>
+
+    <div class="tpl-mgr-footer">
+      <button id="tpl-add-btn" class="nf-btn-outline">＋ 新規テンプレート追加</button>
+      <button id="tpl-reset-btn" class="nf-btn-link" style="color: var(--ng);">リセット</button>
+    </div>
+  </div>
+</div>
 
 
 <!-- TOAST -->
