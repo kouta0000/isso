@@ -544,118 +544,95 @@ body.focus #editor { padding-top:80px; }
 }
 
 /* ══════════════════════════════════════════════
-   MODAL SYSTEM - ARCHITECTURAL FIX
+   ARCHITECTURAL MODAL SYSTEM - Responsive & Stable
 ══════════════════════════════════════════════ */
 
-/* モーダル全体の基盤：背景の視認性を確保 */
+/* 1. モーダル基盤：霧（背景）の視認性確保 */
 .modal {
   position: fixed;
   inset: 0;
   display: flex;
-  align-items: center;
+  align-items: center; /* デスクトップでは中央 */
   justify-content: center;
-  z-index: 3000;
-  padding: 20px;
+  z-index: 5000;
+  padding: 16px;
 }
 
-/* 背景（霧）：backdrop-filterが効かない環境も考慮し、高不透明度の背景色を設定 */
+/* 霧：高密度な透過設定 */
 #nf-mgr-bg, #tpl-mgr-bg, #share-bg {
   position: absolute;
   inset: 0;
-  background: rgba(230, 226, 219, 0.85); /* --bgに近い色で透過を抑制 */
+  background: rgba(239, 236, 231, 0.96); /* --bg ほぼ不透明 */
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  animation: fadeIn 0.3s ease-out;
 }
 
-/* モーダル本体：フロントマター切替時もサイズを固定 */
+/* 2. モーダル本体：サイズ固定によるガタつきの完全排除 */
 #nf-mgr-box, #tpl-mgr-box, #share-box {
   position: relative;
   width: 100%;
-  max-width: 560px;
+  max-width: 540px; /* デスクトップの上限 */
   
-  /* レイアウトのガタつきを防止：高さを固定し、内部をスクロールさせる */
-  height: 600px; 
-  max-height: 90vh;
+  /* 重要：高さをビューポートに依存させ、フロントマターの有無で外枠を変えない */
+  height: 620px; 
+  max-height: 85vh; 
   
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
-  box-shadow: 
-    0 4px 20px rgba(42, 37, 32, 0.08),
-    0 20px 50px rgba(42, 37, 32, 0.12);
+  box-shadow: 0 20px 60px rgba(42, 37, 32, 0.15);
   
   display: flex;
-  flex-direction: column; /* Head / Body / Footer の縦積み */
+  flex-direction: column; /* Head / Body / Footer を分ける */
   overflow: hidden;
-  animation: modalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: modalSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes modalSlideUp {
-  from { opacity: 0; transform: translateY(30px); }
+@keyframes modalSlideIn {
+  from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* モーダルヘッダー */
+/* 3. 内部スクロール管理：これがガタつきを抑える鍵 */
 .modal-head {
   padding: 20px 24px;
-  background: var(--surface);
   border-bottom: 1px solid var(--border-soft);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-shrink: 0; /* 高さを削らせない */
+  flex-shrink: 0; /* ヘッダーは潰さない */
+  background: var(--surface);
 }
 
-.modal-head h2 {
-  font-family: var(--serif);
-  font-size: 16px;
-  letter-spacing: 0.1em;
-  color: var(--accent);
-  margin: 0;
-}
-
-/* モーダルボディ：コンテンツ増減はこの中で完結 */
-.modal-body {
-  flex: 1; /* 残りの高さをすべて占有 */
-  overflow-y: auto;
-  padding: 28px;
+#tpl-list, .modal-body {
+  flex: 1; /* 余った高さをすべて占有 */
+  overflow-y: auto; /* コンテンツが増えたらこの中だけでスクロール */
+  padding: 24px;
   overscroll-behavior: contain;
 }
 
-.modal-body::-webkit-scrollbar { width: 4px; }
-.modal-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-
-/* ── トグルスイッチの完全な再設計 ── */
+/* 4. トグルスイッチの再設計（ブラウザ標準を完全に上書き） */
 .toggle-wrap {
-  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
   cursor: pointer;
-  user-select: none;
+  padding: 4px 0;
 }
 
-/* 既存のチェックボックスを完全に隠す */
+/* チェックボックス本体を完全に非表示 */
 .toggle-wrap input[type="checkbox"] {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
+  display: none;
 }
 
-/* トラック */
+/* 既存のtrackとthumbを動かす */
 .toggle-track {
-  display: inline-block;
-  width: 36px;
+  display: block;
+  width: 38px;
   height: 20px;
   background: var(--ghost);
   border-radius: 20px;
   position: relative;
-  transition: background 0.3s var(--ease);
+  margin-right: 12px;
+  transition: background 0.3s;
 }
 
-/* つまみ */
 .toggle-thumb {
   display: block;
   width: 14px;
@@ -669,81 +646,43 @@ body.focus #editor { padding-top:80px; }
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-/* チェック時の挙動 */
+/* チェック状態をセレクタで伝播 */
 .toggle-wrap input:checked + .toggle-track {
   background: var(--ok);
 }
 .toggle-wrap input:checked + .toggle-track .toggle-thumb {
-  transform: translateX(16px);
+  transform: translateX(18px);
 }
 
-.toggle-label {
-  font-size: 12px;
-  color: var(--mid);
+/* 5. モバイル・レスポンシブ対応 */
+@media (max-width: 600px) {
+  .modal {
+    align-items: flex-end; /* 下から出るボトムシート風 */
+    padding: 0;
+  }
+  
+  #nf-mgr-box, #tpl-mgr-box, #share-box {
+    max-width: 100%;
+    height: 90vh; /* スマホでは広めに取る */
+    border-radius: 20px 20px 0 0; /* 上部だけ丸める */
+    border-bottom: none;
+  }
+  
+  #nf-tpl-grid {
+    grid-template-columns: 1fr 1fr; /* スマホでは2列固定で見やすく */
+  }
 }
 
-/* ── フロントマター・入力フォームの調整 ── */
+/* フロントマターエリアの微調整 */
 #nf-fm-body {
   margin-top: 16px;
   padding: 20px;
   background: rgba(42, 37, 32, 0.03);
   border-radius: 8px;
   border: 1px solid var(--border-soft);
-  display: none; /* JSで.visibleを制御 */
 }
+#nf-fm-body:not(.visible) { display: none; }
 
-#nf-fm-body.visible {
-  display: block;
-  animation: fadeIn 0.2s ease-out;
-}
-
-.fm-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.fm-key, .fm-val {
-  background: var(--hi);
-  border: 1px solid var(--border-soft);
-  border-radius: 4px;
-  padding: 6px 10px;
-  font-family: var(--mono);
-  font-size: 12px;
-  color: var(--ink);
-  outline: none;
-}
-
-.fm-key:focus, .fm-val:focus {
-  border-color: var(--accent2);
-  background: #fff;
-}
-
-/* ── テンプレートグリッド ── */
-#nf-tpl-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 12px;
-  margin-bottom: 32px;
-}
-
-.nf-tpl-btn {
-  background: var(--hi);
-  border: 1px solid var(--border-soft);
-  border-radius: 8px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  transition: all 0.2s var(--ease);
-}
-
-.nf-tpl-btn:hover {
-  border-color: var(--accent);
-  background: #fff;
-  transform: translateY(-2px);
-}
-
-   
+.fm-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+.fm-key { width: 90px; flex-shrink: 0; }
+.fm-val { flex: 1; }
