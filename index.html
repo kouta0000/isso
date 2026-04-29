@@ -167,65 +167,50 @@
   </div>
 </div>
 
-<!-- ══ NEW FILE MODAL ══ -->
 <div id="new-file-modal" class="modal hidden">
-  <div id="nf-bg"></div>
-  <div id="nf-box">
-    <div class="modal-head">
-      <h2>新規ファイル</h2>
-      <button id="nf-cancel" class="icon-btn">✕</button>
+  <div class="modal-overlay" id="nf-bg"></div>
+  <div class="modal-container" id="nf-box">
+    
+    <header class="modal-header">
+      <h2>Nouveau Fichier</h2>
+      <button id="nf-cancel" class="icon-close">✕</button>
+    </header>
+
+    <div class="modal-body">
+      <section class="nf-section">
+        <div class="section-header">
+          <h3 class="section-title">Template</h3>
+          <button id="nf-open-tpl-mgr" class="btn-link">Gérer les templates</button>
+        </div>
+        <div id="nf-tpl-grid" class="template-grid">
+          </div>
+      </section>
+
+      <section class="nf-section highlight">
+        <div class="section-header">
+          <h3 class="section-title">Frontmatter</h3>
+          <label class="modern-switch">
+            <input type="checkbox" id="nf-fm-toggle">
+            <span class="switch-slider"></span>
+            <span class="switch-label">Activer</span>
+          </label>
+        </div>
+
+        <div id="nf-fm-body" class="fm-container">
+          <p class="fm-hint">Utilisez <code>{{today}}</code> pour la date actuelle.</p>
+          <div class="fm-table-header">
+            <span>Clé</span>
+            <span>Valeur</span>
+          </div>
+          <div id="nf-fm-fields"></div>
+          <button id="nf-fm-add" class="btn-add">＋ Ajouter un champ</button>
+        </div>
+      </section>
     </div>
-
-    <!-- テンプレート選択 -->
-    <section class="nf-section">
-      <div class="nf-section-head">
-        <span class="nf-section-title">テンプレート</span>
-        <button id="nf-open-tpl-mgr" class="nf-link-btn">編集…</button>
-      </div>
-      <div id="nf-tpl-grid"></div>
-    </section>
-
-    <!-- フロントマター -->
-    <section class="nf-section">
-      <div class="nf-section-head">
-        <span class="nf-section-title">フロントマター</span>
-        <label class="toggle-wrap">
-          <input type="checkbox" id="nf-fm-toggle">
-          <span class="toggle-track"><span class="toggle-thumb"></span></span>
-          <span class="toggle-label">挿入する</span>
-        </label>
-      </div>
-      <div id="nf-fm-body">
-        <div class="fm-hint">
-          <code>{{today}}</code> と書くと作成日に置換されます
-        </div>
-        <div class="fm-header-row">
-          <span class="fm-col-label" style="margin-left:28px">キー</span>
-          <span class="fm-col-label">値</span>
-        </div>
-        <div id="nf-fm-fields"></div>
-        <button id="nf-fm-add" class="nf-add-field-btn">＋ フィールドを追加</button>
-      </div>
-    </section>
 
   </div>
 </div>
 
-<!-- ══ TEMPLATE MANAGER MODAL ══ -->
-<div id="tpl-manager-modal" class="modal hidden">
-  <div id="tpl-mgr-bg"></div>
-  <div id="tpl-mgr-box">
-    <div class="modal-head">
-      <h2>テンプレート管理</h2>
-      <button id="tpl-mgr-close" class="icon-btn">✕</button>
-    </div>
-    <div id="tpl-list"></div>
-    <div class="tpl-mgr-footer">
-      <button id="tpl-add-btn" class="act-btn">＋ 追加</button>
-      <button id="tpl-reset-btn" class="act-btn ghost">リセット</button>
-    </div>
-  </div>
-</div>
 
 <!-- TOAST -->
 <div id="toast"></div>
