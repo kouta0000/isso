@@ -172,44 +172,42 @@
   <div class="nf-container" id="nf-box">
     
     <header class="nf-header">
-      <h2 class="nf-title">Nouveau Fichier</h2>
+      <h2 class="nf-title">新規ファイル</h2>
       <button id="nf-cancel" class="nf-close-btn">✕</button>
     </header>
 
     <div class="nf-content-body">
       <section class="nf-section">
         <div class="nf-section-header">
-          <span class="nf-section-label">Template</span>
-          <button id="nf-open-tpl-mgr" class="nf-btn-link">Gérer les templates</button>
+          <span class="nf-section-label">テンプレート</span>
+          <button id="nf-open-tpl-mgr" class="nf-btn-link">編集…</button>
         </div>
-        <div id="nf-tpl-grid" class="nf-grid-layout">
-          </div>
+        <div id="nf-tpl-grid" class="nf-grid-layout"></div>
       </section>
 
       <section class="nf-section nf-sidebar-bg">
         <div class="nf-section-header">
-          <span class="nf-section-label">Frontmatter</span>
+          <span class="nf-section-label">フロントマター</span>
           <label class="nf-switch">
             <input type="checkbox" id="nf-fm-toggle">
             <span class="nf-slider"></span>
-            <span class="nf-toggle-text">Insérer</span>
+            <span class="nf-toggle-text">挿入する</span>
           </label>
         </div>
 
         <div id="nf-fm-body" class="nf-fm-wrapper">
           <div class="nf-hint-box">
-            <code>{{today}}</code> sera remplacé par la date du jour.
+            <code>{{today}}</code> と書くと作成日に置換されます
           </div>
           <div class="nf-table-header">
-            <span style="flex: 1">Clé</span>
-            <span style="flex: 1">Valeur</span>
+            <span style="flex: 1; margin-left: 28px;">キー</span>
+            <span style="flex: 1">値</span>
           </div>
           <div id="nf-fm-fields"></div>
-          <button id="nf-fm-add" class="nf-btn-outline">＋ Ajouter un champ</button>
+          <button id="nf-fm-add" class="nf-btn-outline">＋ フィールドを追加</button>
         </div>
       </section>
     </div>
-
   </div>
 </div>
 
