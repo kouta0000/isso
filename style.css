@@ -544,355 +544,206 @@ body.focus #editor { padding-top:80px; }
 }
 
 /* ══════════════════════════════════════════════
-   追加：新規作成・テンプレート・モーダル関連
+   MODAL SYSTEM - ARCHITECTURAL FIX
 ══════════════════════════════════════════════ */
 
-/* ── Modal Base ── */
-.modal {
-  position: fixed; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  z-index: 1000;
-  padding: 20px;
-}
-.modal.hidden { display: none; }
-
-#nf-mgr-bg, #tpl-mgr-bg, #share-bg {
-  position: absolute; inset: 0;
-  background: rgba(42,37,32, 0.15);
-  backdrop-filter: blur(4px);
-  animation: fadeIn .3s var(--ease);
-}
-
-#nf-mgr-box, #tpl-mgr-box, #share-box {
-  position: relative;
-  width: 100%; max-width: 540px;
-  max-height: 85vh;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: 0 20px 60px rgba(42,37,32, 0.12);
-  display: flex; flex-direction: column;
-  overflow: hidden;
-  animation: modalUp .35s var(--ease);
-}
-
-@keyframes modalUp {
-  from { opacity: 0; transform: translateY(15px) scale(0.98); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-.modal-head {
-  padding: 20px 24px;
-  display: flex; align-items: center; justify-content: space-between;
-  border-bottom: 1px solid var(--border-soft);
-}
-.modal-head h2 {
-  font-family: var(--serif);
-  font-size: 16px; font-weight: 500;
-  color: var(--accent); letter-spacing: 0.05em;
-}
-
-.modal-body {
-  flex: 1; overflow-y: auto;
-  padding: 24px;
-}
-.modal-body::-webkit-scrollbar { width: 4px; }
-.modal-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-/* ── New File Template Grid ── */
-.nf-section-head {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 16px;
-}
-.nf-section-title {
-  font-size: 11px; font-weight: 500;
-  color: var(--soft); letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-#nf-tpl-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 12px; margin-bottom: 32px;
-}
-
-.nf-tpl-btn {
-  background: var(--hi);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--r);
-  padding: 16px;
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
-  cursor: pointer; transition: all 0.2s var(--ease);
-}
-.nf-tpl-btn:hover {
-  border-color: var(--accent);
-  background: var(--surface);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(42,37,32, 0.05);
-}
-.nf-tpl-icon { font-size: 24px; }
-.nf-tpl-name { font-size: 13px; color: var(--ink); }
-
-/* ── Frontmatter / Form ── */
-#nf-fm-body {
-  display: none;
-  background: var(--bg);
-  border-radius: var(--r);
-  padding: 16px; margin-top: 12px;
-}
-#nf-fm-body.visible { display: block; }
-
-.fm-hint {
-  font-size: 11px; color: var(--soft);
-  margin-bottom: 12px; padding-left: 4px;
-}
-.fm-hint code { font-family: var(--mono); background: var(--border-soft); padding: 2px 4px; border-radius: 3px; }
-
-.fm-header-row {
-  display: flex; gap: 8px; margin-bottom: 8px;
-  font-size: 10px; color: var(--ghost);
-}
-
-.fm-row {
-  display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
-}
-.fm-key, .fm-val {
-  background: var(--hi);
-  border: 1px solid var(--border-soft);
-  border-radius: 4px;
-  padding: 6px 10px;
-  font-family: var(--mono); font-size: 12px;
-  color: var(--ink); outline: none;
-}
-.fm-key { width: 100px; }
-.fm-val { flex: 1; }
-.fm-key:focus, .fm-val:focus { border-color: var(--accent2); background: #fff; }
-
-.fm-sep { color: var(--ghost); }
-.fm-del {
-  background: none; border: none; color: var(--ghost);
-  cursor: pointer; padding: 4px; font-size: 14px;
-  transition: color 0.2s;
-}
-.fm-del:hover { color: var(--ng); }
-
-.nf-add-field-btn {
-  background: none; border: 1px dashed var(--border);
-  width: 100%; padding: 8px; margin-top: 8px;
-  font-size: 11px; color: var(--soft);
-  border-radius: 4px; cursor: pointer;
-}
-.nf-add-field-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-/* ── Toggle Switch ── */
-.toggle-wrap {
-  display: flex; align-items: center; gap: 8px; cursor: pointer;
-}
-.toggle-track {
-  width: 32px; height: 18px;
-  background: var(--ghost);
-  border-radius: 10px; position: relative;
-  transition: background 0.2s;
-}
-.toggle-thumb {
-/* ══════════════════════════════════════════════
-   Refined Modal System — "Shizuku" Design v2
-══════════════════════════════════════════════ */
-
+/* モーダル全体の基盤：背景の視認性を確保 */
 .modal {
   position: fixed;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2000;
-  padding: 24px;
+  z-index: 3000;
+  padding: 20px;
 }
 
-/* 霧のオーバーレイ：視認性を大幅に向上 */
+/* 背景（霧）：backdrop-filterが効かない環境も考慮し、高不透明度の背景色を設定 */
 #nf-mgr-bg, #tpl-mgr-bg, #share-bg {
   position: absolute;
   inset: 0;
-  background: rgba(239, 236, 231, 0.7); /* テーマ色 --bg をベースに */
-  backdrop-filter: blur(12px) saturate(120%);
-  -webkit-backdrop-filter: blur(12px) saturate(120%);
-  animation: fadeIn 0.4s ease-out;
+  background: rgba(230, 226, 219, 0.85); /* --bgに近い色で透過を抑制 */
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  animation: fadeIn 0.3s ease-out;
 }
 
-/* モーダル本体：安定した構造と和紙の質感 */
+/* モーダル本体：フロントマター切替時もサイズを固定 */
 #nf-mgr-box, #tpl-mgr-box, #share-box {
   position: relative;
   width: 100%;
-  max-width: 580px;
-  /* サイズ変化を抑えるための固定的な高さ設定 */
-  height: 640px; 
-  max-height: 85vh;
+  max-width: 560px;
+  
+  /* レイアウトのガタつきを防止：高さを固定し、内部をスクロールさせる */
+  height: 600px; 
+  max-height: 90vh;
   
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 12px;
   box-shadow: 
-    0 10px 30px rgba(42, 37, 32, 0.05),
-    0 30px 70px rgba(42, 37, 32, 0.1);
+    0 4px 20px rgba(42, 37, 32, 0.08),
+    0 20px 50px rgba(42, 37, 32, 0.12);
   
   display: flex;
-  flex-direction: column;
+  flex-direction: column; /* Head / Body / Footer の縦積み */
   overflow: hidden;
-  animation: modalEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: modalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes modalEnter {
-  from { opacity: 0; transform: translateY(20px) scale(0.98); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+@keyframes modalSlideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* ヘッダー */
+/* モーダルヘッダー */
 .modal-head {
-  padding: 24px 28px;
+  padding: 20px 24px;
   background: var(--surface);
   border-bottom: 1px solid var(--border-soft);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-shrink: 0;
+  flex-shrink: 0; /* 高さを削らせない */
 }
 
 .modal-head h2 {
   font-family: var(--serif);
-  font-size: 18px;
+  font-size: 16px;
   letter-spacing: 0.1em;
   color: var(--accent);
+  margin: 0;
 }
 
-/* ボディ：ここをスクロール可能に */
+/* モーダルボディ：コンテンツ増減はこの中で完結 */
 .modal-body {
-  flex: 1;
+  flex: 1; /* 残りの高さをすべて占有 */
   overflow-y: auto;
-  padding: 32px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--ghost) transparent;
+  padding: 28px;
+  overscroll-behavior: contain;
 }
 
-.modal-body::-webkit-scrollbar { width: 5px; }
-.modal-body::-webkit-scrollbar-thumb { background: var(--ghost); border-radius: 10px; }
+.modal-body::-webkit-scrollbar { width: 4px; }
+.modal-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
 
-/* テンプレートグリッド */
-#nf-tpl-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 16px;
-  margin-bottom: 40px;
-}
-
-.nf-tpl-btn {
-  background: var(--hi);
-  border: 1px solid var(--border-soft);
-  border-radius: 12px;
-  padding: 20px;
-  text-align: center;
-  transition: all 0.25s var(--ease);
-  cursor: pointer;
-}
-
-.nf-tpl-btn:hover {
-  border-color: var(--accent2);
-  background: #fff;
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(122, 109, 92, 0.1);
-}
-
-.nf-tpl-icon { font-size: 28px; display: block; margin-bottom: 10px; }
-.nf-tpl-name { font-size: 14px; font-weight: 500; color: var(--ink); }
-
-/* フロントマター設定エリア（サイズ変更対策） */
-.nf-section {
-  background: rgba(42, 37, 32, 0.02);
-  border-radius: 12px;
-  padding: 24px;
-  border: 1px solid var(--border-soft);
-}
-
-#nf-fm-body {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border-soft);
-  /* 非表示時もレイアウトを確保したい場合は transition を使うが、
-     今回は modal 自体の高さを固定(height: 640px)したのでガタつきません */
-  display: none;
-}
-#nf-fm-body.visible { display: block; }
-
-/* 入力フィールドの洗練 */
-.fm-row {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 12px;
-  align-items: center;
-}
-
-.fm-key, .fm-val {
-  background: #fff;
-  border: 1px solid var(--border-soft);
-  border-radius: 6px;
-  padding: 8px 12px;
-  font-family: var(--mono);
-  font-size: 13px;
-  color: var(--ink);
-  transition: border-color 0.2s;
-}
-
-.fm-key:focus, .fm-val:focus {
-  border-color: var(--accent2);
-  outline: none;
-}
-
-.fm-key { width: 120px; color: var(--accent); }
-.fm-val { flex: 1; }
-
-/* トグルスイッチの高級化 */
+/* ── トグルスイッチの完全な再設計 ── */
 .toggle-wrap {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 20px;
-  transition: background 0.2s;
-}
-.toggle-wrap:hover { background: var(--border-soft); }
-
-.toggle-track {
-  width: 40px;
-  height: 22px;
-  background: var(--ghost);
-  border-radius: 11px;
   position: relative;
-  transition: background 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
 }
 
+/* 既存のチェックボックスを完全に隠す */
+.toggle-wrap input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* トラック */
+.toggle-track {
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+  background: var(--ghost);
+  border-radius: 20px;
+  position: relative;
+  transition: background 0.3s var(--ease);
+}
+
+/* つまみ */
 .toggle-thumb {
-  width: 16px;
-  height: 16px;
+  display: block;
+  width: 14px;
+  height: 14px;
   background: #fff;
   border-radius: 50%;
   position: absolute;
   top: 3px;
   left: 3px;
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-input:checked + .toggle-track { background: var(--ok); }
-input:checked + .toggle-track .toggle-thumb { transform: translateX(18px); }
+/* チェック時の挙動 */
+.toggle-wrap input:checked + .toggle-track {
+  background: var(--ok);
+}
+.toggle-wrap input:checked + .toggle-track .toggle-thumb {
+  transform: translateX(16px);
+}
 
-/* 閉じるボタン */
-.icon-btn {
-  width: 32px;
-  height: 32px;
+.toggle-label {
+  font-size: 12px;
+  color: var(--mid);
+}
+
+/* ── フロントマター・入力フォームの調整 ── */
+#nf-fm-body {
+  margin-top: 16px;
+  padding: 20px;
+  background: rgba(42, 37, 32, 0.03);
+  border-radius: 8px;
+  border: 1px solid var(--border-soft);
+  display: none; /* JSで.visibleを制御 */
+}
+
+#nf-fm-body.visible {
+  display: block;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.fm-row {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: background 0.2s;
+  gap: 8px;
+  margin-bottom: 8px;
 }
-.icon-btn:hover { background: var(--border-soft); }
+
+.fm-key, .fm-val {
+  background: var(--hi);
+  border: 1px solid var(--border-soft);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink);
+  outline: none;
+}
+
+.fm-key:focus, .fm-val:focus {
+  border-color: var(--accent2);
+  background: #fff;
+}
+
+/* ── テンプレートグリッド ── */
+#nf-tpl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.nf-tpl-btn {
+  background: var(--hi);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+}
+
+.nf-tpl-btn:hover {
+  border-color: var(--accent);
+  background: #fff;
+  transform: translateY(-2px);
+}
+
+   
