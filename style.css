@@ -542,3 +542,206 @@ body.focus #editor { padding-top:80px; }
     right: 8px !important;
     opacity: 0.5 !important;
 }
+
+/* ══════════════════════════════════════════════
+   追加：新規作成・テンプレート・モーダル関連
+══════════════════════════════════════════════ */
+
+/* ── Modal Base ── */
+.modal {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+.modal.hidden { display: none; }
+
+#nf-mgr-bg, #tpl-mgr-bg, #share-bg {
+  position: absolute; inset: 0;
+  background: rgba(42,37,32, 0.15);
+  backdrop-filter: blur(4px);
+  animation: fadeIn .3s var(--ease);
+}
+
+#nf-mgr-box, #tpl-mgr-box, #share-box {
+  position: relative;
+  width: 100%; max-width: 540px;
+  max-height: 85vh;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(42,37,32, 0.12);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  animation: modalUp .35s var(--ease);
+}
+
+@keyframes modalUp {
+  from { opacity: 0; transform: translateY(15px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-head {
+  padding: 20px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border-soft);
+}
+.modal-head h2 {
+  font-family: var(--serif);
+  font-size: 16px; font-weight: 500;
+  color: var(--accent); letter-spacing: 0.05em;
+}
+
+.modal-body {
+  flex: 1; overflow-y: auto;
+  padding: 24px;
+}
+.modal-body::-webkit-scrollbar { width: 4px; }
+.modal-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ── New File Template Grid ── */
+.nf-section-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.nf-section-title {
+  font-size: 11px; font-weight: 500;
+  color: var(--soft); letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+#nf-tpl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px; margin-bottom: 32px;
+}
+
+.nf-tpl-btn {
+  background: var(--hi);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r);
+  padding: 16px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  cursor: pointer; transition: all 0.2s var(--ease);
+}
+.nf-tpl-btn:hover {
+  border-color: var(--accent);
+  background: var(--surface);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(42,37,32, 0.05);
+}
+.nf-tpl-icon { font-size: 24px; }
+.nf-tpl-name { font-size: 13px; color: var(--ink); }
+
+/* ── Frontmatter / Form ── */
+#nf-fm-body {
+  display: none;
+  background: var(--bg);
+  border-radius: var(--r);
+  padding: 16px; margin-top: 12px;
+}
+#nf-fm-body.visible { display: block; }
+
+.fm-hint {
+  font-size: 11px; color: var(--soft);
+  margin-bottom: 12px; padding-left: 4px;
+}
+.fm-hint code { font-family: var(--mono); background: var(--border-soft); padding: 2px 4px; border-radius: 3px; }
+
+.fm-header-row {
+  display: flex; gap: 8px; margin-bottom: 8px;
+  font-size: 10px; color: var(--ghost);
+}
+
+.fm-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+}
+.fm-key, .fm-val {
+  background: var(--hi);
+  border: 1px solid var(--border-soft);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-family: var(--mono); font-size: 12px;
+  color: var(--ink); outline: none;
+}
+.fm-key { width: 100px; }
+.fm-val { flex: 1; }
+.fm-key:focus, .fm-val:focus { border-color: var(--accent2); background: #fff; }
+
+.fm-sep { color: var(--ghost); }
+.fm-del {
+  background: none; border: none; color: var(--ghost);
+  cursor: pointer; padding: 4px; font-size: 14px;
+  transition: color 0.2s;
+}
+.fm-del:hover { color: var(--ng); }
+
+.nf-add-field-btn {
+  background: none; border: 1px dashed var(--border);
+  width: 100%; padding: 8px; margin-top: 8px;
+  font-size: 11px; color: var(--soft);
+  border-radius: 4px; cursor: pointer;
+}
+.nf-add-field-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── Toggle Switch ── */
+.toggle-wrap {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+}
+.toggle-track {
+  width: 32px; height: 18px;
+  background: var(--ghost);
+  border-radius: 10px; position: relative;
+  transition: background 0.2s;
+}
+.toggle-thumb {
+  width: 14px; height: 14px;
+  background: #fff; border-radius: 50%;
+  position: absolute; top: 2px; left: 2px;
+  transition: transform 0.2s;
+}
+input[type="checkbox"]#nf-fm-toggle { display: none; }
+input[type="checkbox"]#nf-fm-toggle:checked + .toggle-track { background: var(--ok); }
+input[type="checkbox"]#nf-fm-toggle:checked + .toggle-track .toggle-thumb { transform: translateX(14px); }
+.toggle-label { font-size: 12px; color: var(--mid); }
+
+/* ── Action Buttons ── */
+.act-btn {
+  background: var(--accent);
+  color: var(--hi);
+  border: none; border-radius: var(--r-s);
+  padding: 8px 20px;
+  font-family: var(--sans); font-size: 13px;
+  cursor: pointer; transition: background 0.2s;
+}
+.act-btn:hover { background: var(--ink); }
+
+/* ── Template Manager Specific ── */
+#tpl-list { margin-bottom: 24px; }
+.tpl-item {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r);
+  padding: 12px; margin-bottom: 12px;
+  background: var(--hi);
+}
+.tpl-item-head { display: flex; gap: 8px; margin-bottom: 8px; }
+.tpl-icon-inp { width: 40px; text-align: center; }
+.tpl-name-inp { flex: 1; font-weight: 500; }
+.tpl-ext-sel {
+  background: var(--bg); border: 1px solid var(--border-soft);
+  font-size: 11px; border-radius: 4px;
+}
+.tpl-area {
+  width: 100%; height: 80px;
+  font-family: var(--mono); font-size: 12px;
+  padding: 8px; border: 1px solid var(--border-soft);
+  border-radius: 4px; outline: none; resize: vertical;
+}
+.tpl-mgr-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-soft);
+  display: flex; gap: 12px; justify-content: flex-end;
+}
+#tpl-reset-btn { background: none; border: 1px solid var(--border); color: var(--soft); }
+#tpl-reset-btn:hover { border-color: var(--ng); color: var(--ng); }
+
