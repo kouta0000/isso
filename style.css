@@ -548,23 +548,13 @@ body.focus #editor { padding-top:80px; }
 ══════════════════════════════════════════════ */
 
 /* 1. 背景の不透明化 (視認性問題の解決) */
-#nf-bg {
-  position: absolute;
-  inset: 0;
-  background: var(--bg); /* rgbaではなく、テーマの背景色で塗りつぶす */
-  opacity: 0.98;
-  backdrop-filter: blur(20px);
-  z-index: -1;
-}
-
+#nf-bg { position:absolute; inset:0; background:rgba(42,37,32,.22); backdrop-filter:blur(3px);}
 /* 2. モーダル本体: 横への拡張設計 */
 #nf-box {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r);
   box-shadow: 0 40px 100px rgba(42, 37, 32, 0.2);
-  
-  /* デフォルト（縦） */
   width: 480px;
   height: 600px;
   max-height: 85vh;
@@ -573,15 +563,7 @@ body.focus #editor { padding-top:80px; }
   transition: width 0.4s var(--ease);
   overflow: hidden;
 }
-
-/* フロントマターが有効な時に横へ拡大 */
-#nf-box:has(#nf-fm-body.visible) {
-  width: 860px; /* 横幅を拡張 */
-  flex-direction: row; /* セクションを横並びに */
-  flex-wrap: wrap; /* ヘッダーを上に残すため */
-}
-
-/* 3. モーダル内の各セクションの配置 */
+* 3. モーダル内の各セクションの配置 */
 #nf-box .modal-head {
   width: 100%; /* ヘッダーは常に上部いっぱいに */
   flex-shrink: 0;
