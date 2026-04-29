@@ -543,106 +543,170 @@ body.focus #editor { padding-top:80px; }
     opacity: 0.5 !important;
 }
 
-/* ══════════════════════════════════════════════
-   NEW FILE MODAL: CORRECT ARCHITECTURE
-══════════════════════════════════════════════ */
 
-/* 1. 背景の不透明化 (視認性問題の解決) */
-#nf-bg { position:absolute; inset:0; background:rgba(42,37,32,.22); backdrop-filter:blur(3px);}
-/* 2. モーダル本体: 横への拡張設計 */
-#nf-box {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  box-shadow: 0 40px 100px rgba(42, 37, 32, 0.2);
-  width: 480px;
-  height: 600px;
-  max-height: 85vh;
+/* Overlay & Container */
+.nf-modal {
+  position: fixed;
+  inset: 0;
   display: flex;
-  flex-direction: column; 
-  transition: width 0.4s var(--ease);
-  overflow: hidden;
-}
-* 3. モーダル内の各セクションの配置 */
-#nf-box .modal-head {
-  width: 100%; /* ヘッダーは常に上部いっぱいに */
-  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  transition: opacity 0.3s ease;
 }
 
-/* テンプレートとフロントマターの各セクション */
-#nf-box .nf-section {
-  flex: 1; /* 横拡大時に均等に並ぶ */
-  min-width: 380px;
+.modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px); /* Léger flou uniquement sur l'arrière-plan */
+}
+
+.modal-container {
+  position: relative;
+  background: var(--bg-modal);
+  width: 90%;
+  max-width: 850px;
+  max-height: 85vh;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  animation: modalIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* フロントマターセクションを右側にするための境界 */
-#nf-box:has(#nf-fm-body.visible) .nf-section + .nf-section {
-  border-left: 1px solid var(--border-soft);
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* 4. 既存のテンプレートグリッドのスクロール */
-#nf-tpl-grid {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px;
+/* Header */
+.nf-modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nf-modal-header h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+}
+
+/* Body Layout */
+.modal-body {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: 12px;
+  grid-template-columns: 1fr 1fr;
+  overflow-y: auto;
 }
 
-/* 5. トグルスイッチ (チェックマークを消して既存のspanを動かす) */
-.toggle-wrap input[type="checkbox"] {
-  display: none; /* 標準のチェックボックスを消去 */
+.nf-section {
+  padding: 24px;
 }
 
-.toggle-track {
-  display: inline-block;
-  width: 38px;
+.nf-section.highlight {
+  background: #fafbfc;
+  border-left: 1px solid var(--border-color);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* Custom Switch (Toggle) */
+.modern-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.switch-slider {
+  width: 36px;
   height: 20px;
-  background: var(--ghost);
+  background: #cbd5e0;
   border-radius: 20px;
   position: relative;
-  vertical-align: middle;
-  margin-right: 10px;
-  transition: background 0.3s;
+  transition: 0.3s;
 }
 
-.toggle-thumb {
+.switch-slider::before {
+  content: "";
   position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 14px;
-  height: 14px;
-  background: #fff;
+  width: 16px;
+  height: 16px;
+  background: white;
   border-radius: 50%;
-  transition: transform 0.3s var(--ease);
+  top: 2px;
+  left: 2px;
+  transition: 0.3s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-/* チェック時のステート */
-#nf-fm-toggle:checked + .toggle-track {
-  background: var(--ok);
-}
-#nf-fm-toggle:checked + .toggle-track .toggle-thumb {
-  transform: translateX(18px);
+#nf-fm-toggle:checked + .switch-slider {
+  background: var(--accent);
 }
 
-/* 6. レスポンシブ (スマホでは縦並びを維持) */
+#nf-fm-toggle:checked + .switch-slider::before {
+  transform: translateX(16px);
+}
+
+/* Buttons */
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.btn-link:hover {
+  background: rgba(74, 144, 226, 0.1);
+}
+
+.btn-add {
+  width: 100%;
+  padding: 10px;
+  margin-top: 12px;
+  border: 1px dashed var(--accent);
+  background: transparent;
+  color: var(--accent);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-add:hover {
+  background: var(--accent);
+  color: white;
+}
+
+/* Responsive */
 @media (max-width: 800px) {
-  #nf-box:has(#nf-fm-body.visible) {
-    width: 100%;
-    height: 90vh;
-    flex-direction: column;
+  .modal-body {
+    grid-template-columns: 1fr;
   }
-  #nf-box .nf-section {
-    min-width: 100%;
-    flex: none;
-    height: auto;
-  }
-  #nf-box:has(#nf-fm-body.visible) .nf-section + .nf-section {
+  .nf-section.highlight {
     border-left: none;
-    border-top: 1px solid var(--border-soft);
+    border-top: 1px solid var(--border-color);
   }
 }
