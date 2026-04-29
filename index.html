@@ -167,49 +167,52 @@
   </div>
 </div>
 
-<div id="new-file-modal" class="nf-modal hidden">
-  <div class="modal-overlay" id="nf-bg"></div>
-  <div class="modal-container" id="nf-box">
+<div id="new-file-modal" class="nf-modal-wrapper hidden">
+  <div class="nf-overlay" id="nf-bg"></div>
+  <div class="nf-container" id="nf-box">
     
-    <header class="nf-modal-header">
-      <h2>Nouveau Fichier</h2>
-      <button id="nf-cancel" class="icon-close">✕</button>
+    <header class="nf-header">
+      <h2 class="nf-title">Nouveau Fichier</h2>
+      <button id="nf-cancel" class="nf-close-btn">✕</button>
     </header>
 
-    <div class="modal-body">
+    <div class="nf-content-body">
       <section class="nf-section">
-        <div class="section-header">
-          <h3 class="section-title">Template</h3>
-          <button id="nf-open-tpl-mgr" class="btn-link">Gérer les templates</button>
+        <div class="nf-section-header">
+          <span class="nf-section-label">Template</span>
+          <button id="nf-open-tpl-mgr" class="nf-btn-link">Gérer les templates</button>
         </div>
-        <div id="nf-tpl-grid" class="template-grid">
+        <div id="nf-tpl-grid" class="nf-grid-layout">
           </div>
       </section>
 
-      <section class="nf-section highlight">
-        <div class="section-header">
-          <h3 class="section-title">Frontmatter</h3>
-          <label class="modern-switch">
+      <section class="nf-section nf-sidebar-bg">
+        <div class="nf-section-header">
+          <span class="nf-section-label">Frontmatter</span>
+          <label class="nf-switch">
             <input type="checkbox" id="nf-fm-toggle">
-            <span class="switch-slider"></span>
-            <span class="switch-label">Activer</span>
+            <span class="nf-slider"></span>
+            <span class="nf-toggle-text">Insérer</span>
           </label>
         </div>
 
-        <div id="nf-fm-body" class="fm-container">
-          <p class="fm-hint">Utilisez <code>{{today}}</code> pour la date actuelle.</p>
-          <div class="fm-table-header">
-            <span>Clé</span>
-            <span>Valeur</span>
+        <div id="nf-fm-body" class="nf-fm-wrapper">
+          <div class="nf-hint-box">
+            <code>{{today}}</code> sera remplacé par la date du jour.
+          </div>
+          <div class="nf-table-header">
+            <span style="flex: 1">Clé</span>
+            <span style="flex: 1">Valeur</span>
           </div>
           <div id="nf-fm-fields"></div>
-          <button id="nf-fm-add" class="btn-add">＋ Ajouter un champ</button>
+          <button id="nf-fm-add" class="nf-btn-outline">＋ Ajouter un champ</button>
         </div>
       </section>
     </div>
 
   </div>
 </div>
+
 
 
 <!-- TOAST -->
