@@ -544,145 +544,165 @@ body.focus #editor { padding-top:80px; }
 }
 
 /* ══════════════════════════════════════════════
-   ARCHITECTURAL MODAL SYSTEM - Responsive & Stable
+   ARCHITECTURAL FIX: "SHIZUKU" SIDE-BY-SIDE MODAL
 ══════════════════════════════════════════════ */
 
-/* 1. モーダル基盤：霧（背景）の視認性確保 */
+/* 1. 背景オーバーレイ：視認性の確保 */
 .modal {
   position: fixed;
   inset: 0;
   display: flex;
-  align-items: center; /* デスクトップでは中央 */
+  align-items: center;
   justify-content: center;
-  z-index: 5000;
-  padding: 16px;
+  z-index: 9000;
 }
 
-/* 霧：高密度な透過設定 */
 #nf-mgr-bg, #tpl-mgr-bg, #share-bg {
   position: absolute;
   inset: 0;
-  background: rgba(239, 236, 231, 0.96); /* --bg ほぼ不透明 */
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(239, 236, 231, 0.98); /* ほぼ不透明にしてエディタを遮断 */
+  backdrop-filter: blur(24px); /* 霧の効果を最大化 */
+  -webkit-backdrop-filter: blur(24px);
 }
 
-/* 2. モーダル本体：サイズ固定によるガタつきの完全排除 */
+/* 2. モーダル本体：横への拡張を考慮した設計 */
 #nf-mgr-box, #tpl-mgr-box, #share-box {
   position: relative;
-  width: 100%;
-  max-width: 540px; /* デスクトップの上限 */
-  
-  /* 重要：高さをビューポートに依存させ、フロントマターの有無で外枠を変えない */
-  height: 620px; 
-  max-height: 85vh; 
-  
-  background: var(--surface);
+  background: var(--surface); /* 完全に不透明 */
   border: 1px solid var(--border);
   border-radius: 12px;
-  box-shadow: 0 20px 60px rgba(42, 37, 32, 0.15);
+  box-shadow: 0 40px 100px rgba(42, 37, 32, 0.15);
+  
+  /* デフォルトはコンパクト */
+  width: 500px;
+  max-width: 95vw;
+  height: 600px;
+  max-height: 85vh;
   
   display: flex;
-  flex-direction: column; /* Head / Body / Footer を分ける */
+  flex-direction: column;
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
-  animation: modalSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes modalSlideIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+/* フロントマター表示時に「横へ」拡大する（モダンブラウザ対応） */
+#nf-mgr-box:has(#nf-fm-body.visible) {
+  width: 880px; 
 }
 
-/* 3. 内部スクロール管理：これがガタつきを抑える鍵 */
-.modal-head {
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--border-soft);
-  flex-shrink: 0; /* ヘッダーは潰さない */
-  background: var(--surface);
+/* 3. モーダル内部：2カラムレイアウト */
+.modal-body {
+  flex: 1;
+  display: flex; /* 横並びの基盤 */
+  gap: 32px;
+  padding: 32px;
+  overflow-y: auto;
 }
 
-#tpl-list, .modal-body {
-  flex: 1; /* 余った高さをすべて占有 */
-  overflow-y: auto; /* コンテンツが増えたらこの中だけでスクロール */
-  padding: 24px;
-  overscroll-behavior: contain;
+/* テンプレート側（左） */
+#nf-tpl-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+  align-content: start;
 }
 
-/* 4. トグルスイッチの再設計（ブラウザ標準を完全に上書き） */
+/* フロントマター側（右） */
+.nf-section {
+  flex: 0 0 320px; /* 幅を固定 */
+  display: flex;
+  flex-direction: column;
+}
+
+/* 4. テンプレートボタンのスタイル復元 */
+.nf-tpl-btn {
+  background: var(--hi);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+}
+
+.nf-tpl-btn:hover {
+  background: #fff;
+  border-color: var(--accent2);
+  transform: translateY(-2px);
+}
+
+.nf-tpl-icon { font-size: 24px; }
+.nf-tpl-name { font-size: 13px; color: var(--ink); }
+
+/* 5. トグルスイッチの完全正常化 */
 .toggle-wrap {
   display: inline-flex;
   align-items: center;
   cursor: pointer;
-  padding: 4px 0;
+  position: relative;
 }
 
-/* チェックボックス本体を完全に非表示 */
 .toggle-wrap input[type="checkbox"] {
-  display: none;
+  position: absolute;
+  opacity: 0; /* 見えないが機能する状態 */
+  width: 1px; height: 1px;
 }
 
-/* 既存のtrackとthumbを動かす */
 .toggle-track {
   display: block;
-  width: 38px;
-  height: 20px;
+  width: 36px; height: 20px;
   background: var(--ghost);
   border-radius: 20px;
-  position: relative;
   margin-right: 12px;
+  position: relative;
   transition: background 0.3s;
 }
 
 .toggle-thumb {
-  display: block;
-  width: 14px;
-  height: 14px;
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 14px; height: 14px;
   background: #fff;
   border-radius: 50%;
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transition: transform 0.3s cubic-bezier(0.17, 0.67, 0.83, 0.67);
 }
 
-/* チェック状態をセレクタで伝播 */
-.toggle-wrap input:checked + .toggle-track {
-  background: var(--ok);
-}
-.toggle-wrap input:checked + .toggle-track .toggle-thumb {
-  transform: translateX(18px);
-}
+/* 状態反映 */
+input:checked + .toggle-track { background: var(--ok); }
+input:checked + .toggle-track .toggle-thumb { transform: translateX(16px); }
 
-/* 5. モバイル・レスポンシブ対応 */
-@media (max-width: 600px) {
-  .modal {
-    align-items: flex-end; /* 下から出るボトムシート風 */
-    padding: 0;
+/* 6. レスポンシブ：スマホでは縦並びに戻す */
+@media (max-width: 800px) {
+  #nf-mgr-box:has(#nf-fm-body.visible) {
+    width: 100%;
+    height: 90vh;
   }
-  
-  #nf-mgr-box, #tpl-mgr-box, #share-box {
-    max-width: 100%;
-    height: 90vh; /* スマホでは広めに取る */
-    border-radius: 20px 20px 0 0; /* 上部だけ丸める */
-    border-bottom: none;
+  .modal-body {
+    flex-direction: column;
+    padding: 20px;
   }
-  
-  #nf-tpl-grid {
-    grid-template-columns: 1fr 1fr; /* スマホでは2列固定で見やすく */
+  .nf-section {
+    flex: none;
+    width: 100%;
+    border-top: 1px solid var(--border-soft);
+    padding-top: 20px;
   }
 }
 
-/* フロントマターエリアの微調整 */
-#nf-fm-body {
-  margin-top: 16px;
-  padding: 20px;
-  background: rgba(42, 37, 32, 0.03);
-  border-radius: 8px;
-  border: 1px solid var(--border-soft);
-}
+/* フロントマターの入力項目 */
+#nf-fm-body { margin-top: 16px; }
 #nf-fm-body:not(.visible) { display: none; }
 
-.fm-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
-.fm-key { width: 90px; flex-shrink: 0; }
+.fm-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.fm-key, .fm-val {
+  background: var(--hi);
+  border: 1px solid var(--border-soft);
+  padding: 8px; border-radius: 4px;
+  font-family: var(--mono); font-size: 12px;
+}
+.fm-key { width: 90px; }
 .fm-val { flex: 1; }
