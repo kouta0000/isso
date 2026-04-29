@@ -543,9 +543,7 @@ body.focus #editor { padding-top:80px; }
     opacity: 0.5 !important;
 }
 
-
-
-/* Wrapper principal */
+/* モーダル全体の重なり */
 .nf-modal-wrapper {
   position: fixed;
   inset: 0;
@@ -555,30 +553,33 @@ body.focus #editor { padding-top:80px; }
   z-index: 9999;
 }
 
-/* Fond sombre uniquement */
-.nf-overlay {
+.nf-modal-wrapper.hidden {
+  display: none;
+}
+
+/* 背景のブラー (ここだけに限定することで全体がボケるのを防ぐ) */
+#nf-bg {
   position: absolute;
   inset: 0;
-  background: rgba(15, 23, 42, 0.5); /* Couleur ardoise semi-transparente */
+  background: rgba(15, 23, 42, 0.5);
   backdrop-filter: blur(4px);
 }
 
-/* Boîte de dialogue */
-.nf-container {
+/* メインコンテナ */
+#nf-box {
   position: relative;
   background: var(--nf-bg-main);
   width: 90%;
   max-width: 800px;
   max-height: 85vh;
   border-radius: var(--nf-radius);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* En-tête */
+/* ヘッダー */
 .nf-header {
   padding: 16px 24px;
   display: flex;
@@ -587,114 +588,75 @@ body.focus #editor { padding-top:80px; }
   border-bottom: 1px solid var(--nf-border);
 }
 
-.nf-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin: 0;
-  color: #1e293b;
+.nf-title { font-size: 1.1rem; font-weight: 600; margin: 0; color: #1e293b; }
+
+#nf-cancel {
+  background: none; border: none; font-size: 1.2rem;
+  color: #94a3b8; cursor: pointer; transition: color 0.2s;
 }
+#nf-cancel:hover { color: #ef4444; }
 
-.nf-close-btn {
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  color: #94a3b8;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.nf-close-btn:hover { color: #ef4444; }
-
-/* Corps du contenu */
+/* レイアウト */
 .nf-content-body {
   display: grid;
-  grid-template-columns: 1fr 320px; /* Largeur fixe pour le frontmatter */
-  min-height: 400px;
+  grid-template-columns: 1fr 340px;
+  height: 100%;
+  overflow: hidden;
 }
 
-.nf-section { padding: 24px; }
+.nf-section { padding: 24px; overflow-y: auto; }
+.nf-sidebar-bg { background: var(--nf-bg-alt); border-left: 1px solid var(--nf-border); }
 
-.nf-sidebar-bg {
-  background: var(--nf-bg-alt);
-  border-left: 1px solid var(--nf-border);
-}
-
-.nf-section-label {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #64748b;
-  text-transform: uppercase;
-}
-
-/* Switch moderne */
-.nf-switch {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-}
-
+/* スイッチ (トグル) */
+.nf-switch { display: flex; align-items: center; gap: 10px; cursor: pointer; }
 .nf-slider {
-  width: 32px;
-  height: 18px;
-  background: #cbd5e1;
-  border-radius: 10px;
-  position: relative;
-  transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 34px; height: 18px; background: #cbd5e1;
+  border-radius: 10px; position: relative; transition: 0.2s;
 }
-
 .nf-slider::before {
-  content: "";
-  position: absolute;
-  width: 14px;
-  height: 14px;
-  background: white;
-  border-radius: 50%;
-  top: 2px;
-  left: 2px;
-  transition: 0.2s;
+  content: ""; position: absolute; width: 14px; height: 14px;
+  background: white; border-radius: 50%; top: 2px; left: 2px; transition: 0.2s;
 }
 
+/* トグルがチェックされた時のスライダーの色 */
 #nf-fm-toggle:checked + .nf-slider { background: var(--nf-accent); }
-#nf-fm-toggle:checked + .nf-slider::before { transform: translateX(14px); }
+#nf-fm-toggle:checked + .nf-slider::before { transform: translateX(16px); }
 
-/* Zones de texte et boutons */
+/* フロントマターの表示制御 (app.jsで制御する場合) */
+#nf-fm-body {
+  transition: opacity 0.3s ease;
+}
+#nf-fm-body:not(.visible) {
+  opacity: 0.5;
+  pointer-events: none; /* 無効化されている時は触れないように */
+}
+
+/* 各種パーツ */
 .nf-hint-box {
-  background: #f1f5f9;
-  padding: 10px;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  margin-bottom: 15px;
-  color: #475569;
+  background: #f1f5f9; padding: 12px; border-radius: 6px;
+  font-size: 0.8rem; margin-bottom: 16px; color: #475569; line-height: 1.5;
+}
+
+.nf-table-header {
+  display: flex; font-size: 0.75rem; color: #94a3b8;
+  margin-bottom: 8px; font-weight: bold;
 }
 
 .nf-btn-outline {
-  width: 100%;
-  padding: 8px;
-  background: transparent;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  color: #64748b;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.2s;
+  width: 100%; padding: 10px; background: #fff;
+  border: 1px solid #e2e8f0; border-radius: 6px;
+  color: #64748b; cursor: pointer; font-size: 0.85rem;
+  transition: all 0.2s; margin-top: 10px;
+}
+.nf-btn-outline:hover { border-color: var(--nf-accent); color: var(--nf-accent); }
+
+.nf-btn-link {
+  background: none; border: none; color: var(--nf-accent);
+  font-size: 0.8rem; cursor: pointer; font-weight: 500;
 }
 
-.nf-btn-outline:hover {
-  background: #f8fafc;
-  border-color: var(--nf-accent);
-  color: var(--nf-accent);
-}
-
-/* Mobile */
+/* スマホ対応 */
 @media (max-width: 800px) {
-  .nf-content-body {
-    grid-template-columns: 1fr;
-    overflow-y: auto;
-  }
-  .nf-sidebar-bg {
-    border-left: none;
-    border-top: 1px solid var(--nf-border);
-  }
+  .nf-content-body { grid-template-columns: 1fr; overflow-y: auto; }
+  .nf-sidebar-bg { border-left: none; border-top: 1px solid var(--nf-border); }
 }
-
