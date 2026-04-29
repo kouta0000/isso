@@ -543,120 +543,243 @@ body.focus #editor { padding-top:80px; }
     opacity: 0.5 !important;
 }
 
-/* モーダル全体の重なり */
-.nf-modal-wrapper {
+/* 1. 全体コンテナとオーバーレイ */
+#new-file-modal {
   position: fixed;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 1000;
 }
 
-.nf-modal-wrapper.hidden {
-  display: none;
-}
-
-/* 背景のブラー (ここだけに限定することで全体がボケるのを防ぐ) */
 #nf-bg {
   position: absolute;
   inset: 0;
-  background: rgba(15, 23, 42, 0.5);
-  backdrop-filter: blur(4px);
+  background-color: rgba(42, 37, 32, 0.85); /* --inkをベースにした深い不透明色 */
 }
 
-/* メインコンテナ */
 #nf-box {
   position: relative;
-  background: var(--nf-bg-main);
+  background: var(--surface);
+  color: var(--ink);
   width: 90%;
   max-width: 800px;
   max-height: 85vh;
-  border-radius: var(--nf-radius);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  border-radius: var(--r);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  font-family: var(--sans);
+  border: 1px solid var(--border);
 }
 
-/* ヘッダー */
-.nf-header {
-  padding: 16px 24px;
+/* 2. ヘッダー */
+.modal-head {
+  padding: 16px 20px;
+  background: var(--hi);
+  border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid var(--nf-border);
 }
 
-.nf-title { font-size: 1.1rem; font-weight: 600; margin: 0; color: #1e293b; }
-
-#nf-cancel {
-  background: none; border: none; font-size: 1.2rem;
-  color: #94a3b8; cursor: pointer; transition: color 0.2s;
-}
-#nf-cancel:hover { color: #ef4444; }
-
-/* レイアウト */
-.nf-content-body {
-  display: grid;
-  grid-template-columns: 1fr 340px;
-  height: 100%;
-  overflow: hidden;
+.modal-head h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--ink);
 }
 
-.nf-section { padding: 24px; overflow-y: auto; }
-.nf-sidebar-bg { background: var(--nf-bg-alt); border-left: 1px solid var(--nf-border); }
-
-/* スイッチ (トグル) */
-.nf-switch { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-.nf-slider {
-  width: 34px; height: 18px; background: #cbd5e1;
-  border-radius: 10px; position: relative; transition: 0.2s;
-}
-.nf-slider::before {
-  content: ""; position: absolute; width: 14px; height: 14px;
-  background: white; border-radius: 50%; top: 2px; left: 2px; transition: 0.2s;
+.icon-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: var(--soft);
+  cursor: pointer;
+  padding: 4px;
+  transition: color var(--ease);
 }
 
-/* トグルがチェックされた時のスライダーの色 */
-#nf-fm-toggle:checked + .nf-slider { background: var(--nf-accent); }
-#nf-fm-toggle:checked + .nf-slider::before { transform: translateX(16px); }
+.icon-btn:hover {
+  color: var(--ng);
+}
 
-/* フロントマターの表示制御 (app.jsで制御する場合) */
+/* 3. セクションレイアウト */
+.nf-section {
+  padding: 20px;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.nf-section:last-child {
+  border-bottom: none;
+  background: var(--bg);
+}
+
+.nf-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.nf-section-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--mid);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* 4. チェックボックス（トグル）の完全なカスタマイズ */
+.toggle-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+/* デフォルトのチェックボックスを完全に隠す */
+#nf-fm-toggle {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-track {
+  width: 36px;
+  height: 20px;
+  background: var(--ghost);
+  border-radius: 10px;
+  position: relative;
+  transition: background var(--ease);
+}
+
+.toggle-thumb {
+  width: 14px;
+  height: 14px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: transform var(--ease);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+#nf-fm-toggle:checked + .toggle-track {
+  background: var(--ok);
+}
+
+#nf-fm-toggle:checked + .toggle-track .toggle-thumb {
+  transform: translateX(16px);
+}
+
+.toggle-label {
+  font-size: 0.85rem;
+  color: var(--mid);
+}
+
+/* 5. インプットフィールドとテーブル */
 #nf-fm-body {
-  transition: opacity 0.3s ease;
+  margin-top: 10px;
 }
+
 #nf-fm-body:not(.visible) {
-  opacity: 0.5;
-  pointer-events: none; /* 無効化されている時は触れないように */
+  display: none;
 }
 
-/* 各種パーツ */
-.nf-hint-box {
-  background: #f1f5f9; padding: 12px; border-radius: 6px;
-  font-size: 0.8rem; margin-bottom: 16px; color: #475569; line-height: 1.5;
+.fm-hint {
+  font-size: 0.75rem;
+  color: var(--soft);
+  margin-bottom: 12px;
+  font-family: var(--mono);
 }
 
-.nf-table-header {
-  display: flex; font-size: 0.75rem; color: #94a3b8;
-  margin-bottom: 8px; font-weight: bold;
+.fm-header-row {
+  display: flex;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-soft);
+  margin-bottom: 12px;
 }
 
-.nf-btn-outline {
-  width: 100%; padding: 10px; background: #fff;
-  border: 1px solid #e2e8f0; border-radius: 6px;
-  color: #64748b; cursor: pointer; font-size: 0.85rem;
-  transition: all 0.2s; margin-top: 10px;
-}
-.nf-btn-outline:hover { border-color: var(--nf-accent); color: var(--nf-accent); }
-
-.nf-btn-link {
-  background: none; border: none; color: var(--nf-accent);
-  font-size: 0.8rem; cursor: pointer; font-weight: 500;
+.fm-col-label {
+  font-size: 0.7rem;
+  color: var(--soft);
+  flex: 1;
 }
 
-/* スマホ対応 */
-@media (max-width: 800px) {
-  .nf-content-body { grid-template-columns: 1fr; overflow-y: auto; }
-  .nf-sidebar-bg { border-left: none; border-top: 1px solid var(--nf-border); }
+/* インプットのスタイリッシュ化 */
+#nf-fm-fields input {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--hi);
+  border: 1px solid var(--border);
+  border-radius: var(--r-s);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  transition: border-color var(--ease);
+  margin-bottom: 8px;
+}
+
+#nf-fm-fields input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: #fff;
+}
+
+/* 6. ボタン */
+.nf-link-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--mid);
+  font-size: 0.75rem;
+  padding: 4px 12px;
+  border-radius: var(--r-s);
+  cursor: pointer;
+  transition: all var(--ease);
+}
+
+.nf-link-btn:hover {
+  background: var(--hi);
+  border-color: var(--soft);
+}
+
+.nf-add-field-btn {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  border: 1px dashed var(--soft);
+  color: var(--mid);
+  border-radius: var(--r-s);
+  cursor: pointer;
+  font-size: 0.85rem;
+  margin-top: 8px;
+  transition: all var(--ease);
+}
+
+.nf-add-field-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--hi);
+}
+
+/* 7. グリッド (テンプレート用) */
+#nf-tpl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+/* 8. レスポンシブ */
+@media (max-width: 600px) {
+  #nf-box {
+    width: 100%;
+    height: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
 }
