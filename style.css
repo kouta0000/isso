@@ -1339,6 +1339,7 @@ body.focus #editor { padding-top: 88px; }
   border-right: 1px solid var(--border-soft);
   background: var(--surface);
   letter-spacing: 0;
+  white-space: pre;   /* ← これを追加 */
 }
 
 .tpl-textarea {
