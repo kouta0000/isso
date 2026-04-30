@@ -1429,7 +1429,6 @@ body.focus #editor { padding-top: 88px; }
     max-height: 180px;
   }
   .tpl-chrome-hint { display: none; }
-}
 
 /* ════════════════════════════════
    既存のテンプレート管理スタイルを上書き
