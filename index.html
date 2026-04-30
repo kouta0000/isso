@@ -211,26 +211,115 @@
   </div>
 </div>
 
+<!-- ══ TEMPLATE MANAGER MODAL ══ -->
+<!-- index.html の id="tpl-manager-modal" ブロック全体をこれで置き換える -->
+
 <div id="tpl-manager-modal" class="nf-modal-wrapper hidden">
   <div class="nf-overlay" id="tpl-mgr-bg"></div>
-  <div class="nf-container" id="tpl-mgr-box">
-    <header class="nf-header">
-      <h2 class="nf-title">テンプレート管理</h2>
-      <button id="tpl-mgr-close" class="nf-close-btn">✕</button>
+
+  <div class="tpl-mgr-shell" id="tpl-mgr-box">
+
+    <!-- ── ヘッダー ── -->
+    <header class="tpl-mgr-header">
+      <div class="tpl-mgr-header-left">
+        <span class="tpl-mgr-icon">◈</span>
+        <h2 class="tpl-mgr-title">テンプレート管理</h2>
+      </div>
+      <button id="tpl-mgr-close" class="tpl-mgr-close">✕</button>
     </header>
-    
-    <div class="nf-section">
-      <p class="fm-hint">テンプレート名と内容を編集できます。内容に <code>{{content}}</code> を含めると本文が挿入されます。</p>
-      <div id="tpl-list" class="tpl-list-container"></div>
-    </div>
 
-    <div class="tpl-mgr-footer">
-      <button id="tpl-add-btn" class="nf-btn-outline">＋ 新規テンプレート追加</button>
-      <button id="tpl-reset-btn" class="nf-btn-link" style="color: var(--ng);">リセット</button>
-    </div>
-  </div>
+    <!-- ── ボディ（2カラム） ── -->
+    <div class="tpl-mgr-body">
+
+      <!-- 左ペイン：一覧 -->
+      <aside class="tpl-sidebar">
+        <div class="tpl-sidebar-header">
+          <span class="tpl-sidebar-label">テンプレート</span>
+          <button id="tpl-add-btn" class="tpl-add-btn" title="新規追加">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+            </svg>
+            追加
+          </button>
+        </div>
+        <!-- app.js が .tpl-sidebar-item を動的に生成する想定 -->
+        <div id="tpl-list" class="tpl-sidebar-list"></div>
+      </aside>
+
+      <!-- 右ペイン：エディタ -->
+      <main class="tpl-editor-pane">
+
+        <!-- 空状態 -->
+        <div class="tpl-empty-state" id="tpl-empty">
+          <div class="tpl-empty-icon">◇</div>
+          <p class="tpl-empty-text">テンプレートを選択するか、<br>新規追加してください</p>
+        </div>
+
+        <!-- エディタ本体（選択時に表示） -->
+        <div class="tpl-edit-form hidden" id="tpl-edit-form">
+
+          <!-- フォームヘッダー -->
+          <div class="tpl-form-topbar">
+            <div class="tpl-field-group tpl-field-name">
+              <label class="tpl-label" for="tpl-name-input">テンプレート名</label>
+              <input
+                id="tpl-name-input"
+                class="tpl-input tpl-input-name"
+                type="text"
+                placeholder="例：日記、議事録、週報…"
+                spellcheck="false"
+                autocomplete="off"
+              />
+            </div>
+            <div class="tpl-form-actions">
+              <button id="tpl-reset-btn" class="tpl-action-ghost tpl-danger" title="このテンプレートを削除">
+                削除
+              </button>
+              <button id="tpl-save-btn" class="tpl-action-primary">保存する</button>
+            </div>
+          </div>
+
+          <!-- コードエリア -->
+          <div class="tpl-editor-wrap">
+            <div class="tpl-editor-chrome">
+              <div class="tpl-chrome-dots">
+                <span></span><span></span><span></span>
+              </div>
+              <span class="tpl-chrome-label">content.md</span>
+              <span class="tpl-chrome-hint">
+                <code>{{content}}</code> = 本文 &nbsp;·&nbsp;
+                <code>{{today}}</code> = 今日の日付
+              </span>
+            </div>
+            <div class="tpl-textarea-wrap">
+              <div class="tpl-line-numbers" id="tpl-line-numbers" aria-hidden="true"></div>
+              <textarea
+                id="tpl-content-input"
+                class="tpl-textarea"
+                placeholder="# タイトル&#10;&#10;{{content}}&#10;&#10;---&#10;作成日：{{today}}"
+                spellcheck="false"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- フッター：変数リファレンス -->
+          <div class="tpl-form-footer">
+            <span class="tpl-footer-label">変数リファレンス</span>
+            <div class="tpl-badges">
+              <span class="tpl-badge"><code>{{content}}</code> 本文を挿入</span>
+              <span class="tpl-badge"><code>{{today}}</code> 今日の日付</span>
+            </div>
+          </div>
+
+        </div><!-- /tpl-edit-form -->
+      </main>
+
+    </div><!-- /tpl-mgr-body -->
+  </div><!-- /tpl-mgr-shell -->
 </div>
-
 
 <!-- TOAST -->
 <div id="toast"></div>
