@@ -584,18 +584,19 @@ function renderTplManager() {
   templates.forEach((tpl, i) => {
     const item = document.createElement('div');
     item.className = 'tpl-item';
-    /* item.innerHTML = `
+    item.innerHTML = `
       <div class="tpl-item-head">
         <input class="tpl-icon-inp" type="text" value="${esc(tpl.icon||'📄')}" data-idx="${i}" maxlength="4" title="アイコン">
         <input class="tpl-name-inp" type="text" value="${esc(tpl.name)}" data-idx="${i}" placeholder="テンプレート名">
-        <select class="tpl-ext-sel" data-idx="${i}">
+        /* <select class="tpl-ext-sel" data-idx="${i}">
           <option value="md" ${tpl.ext==='md'?'selected':''}>md</option>
           <option value="txt" ${tpl.ext==='txt'?'selected':''}>txt</option>
-        </select>
+        </select> */
         <button class="tpl-del-btn" data-idx="${i}" title="削除">✕</button>
       </div>
-      <textarea class="tpl-body" data-idx="${i}" placeholder="テンプレート本文…" rows="5">${esc(tpl.content||'')}</textarea>
-    `; */
+      /*<textarea class="tpl-body" data-idx="${i}" placeholder="テンプレート本文…" rows="5">${esc(tpl.content||'')}</textarea>
+    */
+    `;
     list.appendChild(item);
   });
 
