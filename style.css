@@ -373,27 +373,150 @@ body {
 /* ════════════════════════════════
    EDITOR
 ════════════════════════════════ */
+/* ════════════════════════════════
+   EDITOR — リッチシェル
+════════════════════════════════ */
 #content {
-  flex: 1; overflow: hidden; display: flex; position: relative;
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  position: relative;
+  padding: 24px;           /* シェルの外余白 */
+  background: var(--bg);
+}
+
+/* シェル全体（tpl-mgr-shell 相当） */
+#editor-shell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--bg);
+  box-shadow: inset 0 1px 4px rgba(30,26,22,.04);
+}
+
+/* ── クロームバー ── */
+#editor-chrome {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  height: 36px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-soft);
+  flex-shrink: 0;
+}
+.editor-chrome-dots {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
+.editor-chrome-dots span {
+  display: block;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+}
+.editor-chrome-dots span:nth-child(1) { background: #e0786c; }
+.editor-chrome-dots span:nth-child(2) { background: #d4a843; }
+.editor-chrome-dots span:nth-child(3) { background: #65b863; }
+
+#editor-chrome-filename {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--mid);
+  letter-spacing: .04em;
+}
+#editor-chrome-hint {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--ghost);
+  letter-spacing: .02em;
+  white-space: nowrap;
+}
+#editor-chrome-hint code {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--accent2);
+  background: rgba(160,120,80,.1);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* ── ボディ（行番号＋テキストエリア） ── */
+#editor-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+#editor-line-numbers {
+  padding: 20px 0 20px 14px;
+  min-width: 44px;
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 14px;           /* #editor の font-size に合わせる */
+  line-height: 2;            /* #editor の line-height に合わせる */
+  color: var(--ghost);
+  opacity: .45;
+  user-select: none;
+  overflow: hidden;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border-soft);
+  background: var(--surface);
+  white-space: pre;
+  letter-spacing: 0;
 }
 
 #editor {
-  flex: 1; width: 100%;
-  background: transparent; border: none; outline: none; resize: none;
-  font-family: var(--mono); font-size: 20px; font-weight: 300;
-  line-height: 2; color: var(--ink);
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 300;
+  line-height: 2;
+  color: var(--ink);
   caret-color: var(--accent2);
-  padding: 40px clamp(24px, calc((100% - 680px) / 2), 9999px);
+  padding: 20px 40px;        /* clamp は削除（シェルが幅を管理する） */
   -webkit-overflow-scrolling: touch;
   letter-spacing: .01em;
 }
 #editor::placeholder {
-  color: var(--ghost); font-style: italic;
+  color: var(--ghost);
+  font-style: italic;
   opacity: .7;
 }
 #editor::-webkit-scrollbar { width: 4px; }
 #editor::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
+/* ── フッター ── */
+#editor-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 6px 16px;
+  background: var(--surface);
+  border-top: 1px solid var(--border-soft);
+  flex-shrink: 0;
+}
+#editor-word-count {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ghost);
+  letter-spacing: .04em;
+}
+
+/* ── レスポンシブ ── */
+@media (max-width: 768px) {
+  #content { padding: 12px; }
+  #editor { font-size: 16px; padding: 16px 20px; }
+  #editor-line-numbers { font-size: 11px; }
+  #editor-chrome-hint { display: none; }
+}
 /* ════════════════════════════════
    PREVIEW OVERLAY
 ════════════════════════════════ */
