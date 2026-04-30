@@ -90,6 +90,23 @@
 
     <!-- EDITOR -->
     <div id="content">
+  <div id="editor-shell">
+
+    <!-- クロームバー -->
+    <div id="editor-chrome">
+      <div class="editor-chrome-dots">
+        <span></span><span></span><span></span>
+      </div>
+      <span id="editor-chrome-filename"><!-- filename.md --></span>
+      <span id="editor-chrome-hint">
+        <code>{{content}}</code> = 本文 &nbsp;·&nbsp;
+        <code>{{today}}</code> = 今日の日付
+      </span>
+    </div>
+
+    <!-- テキストエリア本体＋行番号 -->
+    <div id="editor-body">
+      <div id="editor-line-numbers" aria-hidden="true"></div>
       <textarea id="editor"
         spellcheck="false"
         autocomplete="off"
@@ -97,6 +114,14 @@
         autocapitalize="off"
         placeholder="書き始める…"></textarea>
     </div>
+
+    <!-- フッター -->
+    <div id="editor-footer">
+      <span id="editor-word-count">0 文字</span>
+    </div>
+
+  </div>
+</div>
 
     <!-- PREVIEW OVERLAY -->
     <div id="preview-wrap" class="hidden">
