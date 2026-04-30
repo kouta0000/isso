@@ -598,6 +598,7 @@ function renderTplManager() {
     */
     `;
     list.appendChild(item);
+    renderTplSidebarItem();
   });
 
   // events
