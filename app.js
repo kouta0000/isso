@@ -1041,3 +1041,79 @@ Safari/Firefox ではダウンロードになります。
   resizeFn();
   editor.focus();
 })();
+
+/* ──────────────────────────────────────────────
+   しずく — tpl-manager-editor.js
+   テンプレート管理エディタの行番号同期スニペット
+   既存の app.js に組み込む（またはそのまま追記）
+────────────────────────────────────────────── */
+
+(function () {
+  const textarea   = document.getElementById('tpl-content-input');
+  const lineNums   = document.getElementById('tpl-line-numbers');
+
+  if (!textarea || !lineNums) return;
+
+  /** 行番号を再描画 */
+  function updateLineNumbers() {
+    const lines = textarea.value.split('\n').length;
+    const nums  = Array.from({ length: lines }, (_, i) => i + 1).join('\n');
+    lineNums.textContent = nums;
+  }
+
+  /** テキストエリアのスクロールに行番号を追従 */
+  function syncScroll() {
+    lineNums.scrollTop = textarea.scrollTop;
+  }
+
+  textarea.addEventListener('input',  updateLineNumbers);
+  textarea.addEventListener('scroll', syncScroll);
+
+  /* 初期描画 */
+  updateLineNumbers();
+
+  /* テンプレート切り替え時（app.js 側で内容をセットした後に呼ぶ） */
+  window.tplEditorRefresh = function () {
+    updateLineNumbers();
+    lineNums.scrollTop = 0;
+    textarea.scrollTop = 0;
+  };
+})();
+
+/* ──────────────────────────────────────────────
+   app.js 側でテンプレートリスト項目を生成する際のサンプル
+   既存の tpl-list / tpl-list-container を
+   tpl-sidebar-list に対応させる参考コードです
+────────────────────────────────────────────── */
+
+
+function renderTplSidebarItem(tpl, isActive) {
+  const el = document.createElement('div');
+  el.className = 'tpl-sidebar-item' + (isActive ? ' active' : '');
+  el.dataset.id = tpl.id;
+  el.innerHTML = `
+    <span class="tpl-sidebar-item-icon">◈</span>
+    <span class="tpl-sidebar-item-name">${escapeHtml(tpl.name)}</span>
+  `;
+  el.addEventListener('click', () => selectTemplate(tpl.id));
+  return el;
+}
+
+function selectTemplate(id) {
+  // 全アイテムの active を外す
+  document.querySelectorAll('.tpl-sidebar-item').forEach(el => el.classList.remove('active'));
+  // 選択アイテムに active を付ける
+  document.querySelector(`.tpl-sidebar-item[data-id="${id}"]`)?.classList.add('active');
+
+  // フォームに値をセット
+  const tpl = getTemplateById(id); // app.js 側の関数
+  document.getElementById('tpl-name-input').value    = tpl.name;
+  document.getElementById('tpl-content-input').value = tpl.content;
+
+  // 空状態を隠してフォームを表示
+  document.getElementById('tpl-empty').style.display    = 'none';
+  document.getElementById('tpl-edit-form').classList.remove('hidden');
+
+  // 行番号をリセット
+  if (window.tplEditorRefresh) window.tplEditorRefresh();
+}
