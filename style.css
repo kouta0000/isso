@@ -939,3 +939,500 @@ body.focus #editor { padding-top: 88px; }
     transition-duration: .01ms !important;
   }
 }
+
+/* ══════════════════════════════════════════════
+   しずく — tpl-manager-add.css
+   テンプレート管理モーダル専用スタイル追加分
+   既存の style.css に追記、または別ファイルとして読み込む
+══════════════════════════════════════════════ */
+
+/* ════════════════════════════════
+   SHELL
+════════════════════════════════ */
+.tpl-mgr-shell {
+  position: relative;
+  width: min(900px, 94vw);
+  height: min(620px, 88vh);
+  background: var(--surface);
+  border-radius: var(--r);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: popIn .26s var(--ease-out);
+  font-family: var(--sans);
+}
+
+/* ════════════════════════════════
+   HEADER
+════════════════════════════════ */
+.tpl-mgr-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: var(--hi);
+  border-bottom: 1px solid var(--border-soft);
+  flex-shrink: 0;
+}
+.tpl-mgr-header-left {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.tpl-mgr-icon {
+  font-size: 14px;
+  color: var(--accent);
+  opacity: .7;
+}
+.tpl-mgr-title {
+  font-family: var(--serif);
+  font-size: 15px;
+  font-weight: 300;
+  color: var(--ink);
+  letter-spacing: .06em;
+  margin: 0;
+}
+.tpl-mgr-close {
+  background: none;
+  border: none;
+  color: var(--soft);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 5px 7px;
+  border-radius: var(--r-s);
+  transition: color .12s, background .12s;
+  line-height: 1;
+}
+.tpl-mgr-close:hover {
+  color: var(--ng);
+  background: rgba(154,85,85,.08);
+}
+
+/* ════════════════════════════════
+   BODY — 2カラム
+════════════════════════════════ */
+.tpl-mgr-body {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ════════════════════════════════
+   LEFT SIDEBAR — リスト
+════════════════════════════════ */
+.tpl-sidebar {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border-soft);
+  background: var(--bg);
+  overflow: hidden;
+}
+.tpl-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid var(--border-soft);
+  flex-shrink: 0;
+}
+.tpl-sidebar-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--soft);
+  text-transform: uppercase;
+  letter-spacing: .12em;
+}
+.tpl-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--mid);
+  font-family: var(--sans);
+  font-size: 11px;
+  padding: 4px 9px;
+  border-radius: var(--r-s);
+  cursor: pointer;
+  transition: all .12s;
+  letter-spacing: .02em;
+}
+.tpl-add-btn:hover {
+  background: var(--surface);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: var(--shadow-sm);
+}
+
+.tpl-sidebar-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+.tpl-sidebar-list::-webkit-scrollbar { width: 3px; }
+.tpl-sidebar-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* app.js が生成するリストアイテム */
+.tpl-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border-radius: var(--r-s);
+  cursor: pointer;
+  transition: background .12s;
+  position: relative;
+}
+.tpl-sidebar-item::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 20%; bottom: 20%;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity .15s;
+}
+.tpl-sidebar-item:hover { background: var(--surface); }
+.tpl-sidebar-item.active {
+  background: var(--border-soft);
+}
+.tpl-sidebar-item.active::before { opacity: 1; }
+
+.tpl-sidebar-item-icon {
+  font-size: 11px;
+  color: var(--ghost);
+  flex-shrink: 0;
+}
+.tpl-sidebar-item-name {
+  flex: 1;
+  font-size: 13px;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ════════════════════════════════
+   RIGHT PANE — エディタ
+════════════════════════════════ */
+.tpl-editor-pane {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--hi);
+}
+
+/* 空状態 */
+.tpl-empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px;
+}
+.tpl-empty-icon {
+  font-size: 32px;
+  color: var(--ghost);
+  opacity: .3;
+}
+.tpl-empty-text {
+  font-size: 13px;
+  color: var(--ghost);
+  text-align: center;
+  line-height: 1.8;
+}
+
+/* フォーム全体 */
+.tpl-edit-form {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+.tpl-edit-form.hidden { display: none; }
+
+/* ── フォームトップバー ── */
+.tpl-form-topbar {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid var(--border-soft);
+  flex-shrink: 0;
+  background: var(--surface);
+}
+.tpl-field-group { display: flex; flex-direction: column; gap: 5px; }
+.tpl-field-name { flex: 1; }
+
+.tpl-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--soft);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+}
+
+/* ── Name input ── */
+.tpl-input-name {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-s);
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--ink);
+  padding: 8px 12px;
+  outline: none;
+  width: 100%;
+  transition: border-color .15s, box-shadow .15s;
+  letter-spacing: .01em;
+}
+.tpl-input-name:focus {
+  border-color: var(--accent);
+  background: var(--hi);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.tpl-input-name::placeholder { color: var(--ghost); font-style: italic; }
+
+/* ── Action buttons ── */
+.tpl-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding-bottom: 1px; /* labelの高さ分の微調整 */
+}
+.tpl-action-primary {
+  background: var(--accent);
+  border: none;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--hi);
+  padding: 8px 18px;
+  border-radius: var(--r-s);
+  cursor: pointer;
+  transition: background .15s, box-shadow .15s, transform .1s;
+  letter-spacing: .03em;
+  box-shadow: 0 1px 3px rgba(107,94,76,.25);
+  white-space: nowrap;
+}
+.tpl-action-primary:hover {
+  background: var(--ink);
+  box-shadow: 0 3px 10px rgba(30,26,22,.18);
+}
+.tpl-action-primary:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+.tpl-action-ghost {
+  background: none;
+  border: 1px solid var(--border);
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--mid);
+  padding: 7px 13px;
+  border-radius: var(--r-s);
+  cursor: pointer;
+  transition: all .12s;
+  white-space: nowrap;
+  letter-spacing: .02em;
+}
+.tpl-action-ghost:hover { background: var(--bg); border-color: var(--accent); color: var(--ink); }
+.tpl-action-ghost.tpl-danger:hover {
+  background: rgba(154,85,85,.08);
+  border-color: var(--ng);
+  color: var(--ng);
+}
+
+/* ════════════════════════════════
+   CODE EDITOR CHROME
+════════════════════════════════ */
+.tpl-editor-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin: 16px 20px 0;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  background: var(--bg);
+  /* エディタとしての存在感 */
+  box-shadow: inset 0 1px 4px rgba(30,26,22,.04);
+}
+
+/* タイトルバー */
+.tpl-editor-chrome {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  height: 34px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-soft);
+  flex-shrink: 0;
+}
+
+/* macOS風ドット */
+.tpl-chrome-dots {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
+.tpl-chrome-dots span {
+  display: block;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+}
+.tpl-chrome-dots span:nth-child(1) { background: #e0786c; }
+.tpl-chrome-dots span:nth-child(2) { background: #d4a843; }
+.tpl-chrome-dots span:nth-child(3) { background: #65b863; }
+
+.tpl-chrome-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--mid);
+  letter-spacing: .04em;
+}
+.tpl-chrome-hint {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--ghost);
+  letter-spacing: .02em;
+  white-space: nowrap;
+}
+.tpl-chrome-hint code {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--accent2);
+  background: rgba(160,120,80,.1);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* ── テキストエリア本体＋行番号 ── */
+.tpl-textarea-wrap {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.tpl-line-numbers {
+  padding: 14px 0 14px 12px;
+  min-width: 38px;
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.75;
+  color: var(--ghost);
+  opacity: .55;
+  user-select: none;
+  overflow: hidden;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border-soft);
+  background: var(--surface);
+  letter-spacing: 0;
+}
+
+.tpl-textarea {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 300;
+  line-height: 1.75;
+  color: var(--ink);
+  caret-color: var(--accent2);
+  padding: 14px 16px;
+  -webkit-overflow-scrolling: touch;
+  letter-spacing: .01em;
+  tab-size: 2;
+}
+.tpl-textarea::-webkit-scrollbar { width: 4px; }
+.tpl-textarea::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.tpl-textarea::placeholder {
+  color: var(--ghost);
+  font-style: italic;
+  opacity: .6;
+}
+
+/* ════════════════════════════════
+   FOOTER — 変数リファレンス
+════════════════════════════════ */
+.tpl-form-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px 14px;
+  flex-shrink: 0;
+}
+.tpl-footer-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ghost);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  white-space: nowrap;
+}
+.tpl-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.tpl-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--mid);
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  padding: 3px 10px 3px 8px;
+  border-radius: 12px;
+  letter-spacing: .01em;
+}
+.tpl-badge code {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--accent2);
+  background: rgba(160,120,80,.1);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* ════════════════════════════════
+   RESPONSIVE
+════════════════════════════════ */
+@media (max-width: 640px) {
+  .tpl-mgr-shell {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+  .tpl-mgr-body {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+  .tpl-sidebar {
+    border-right: none;
+    border-bottom: 1px solid var(--border-soft);
+    max-height: 180px;
+  }
+  .tpl-chrome-hint { display: none; }
+}
+
+/* ════════════════════════════════
+   既存のテンプレート管理スタイルを上書き
+   （style.css 内の古い宣言を無効化）
+════════════════════════════════ */
+#tpl-manager-modal .nf-container { all: unset; }
