@@ -568,6 +568,12 @@ function renderFmFields(fm) {
 /* ════════════════════════════════════════════════════
    TEMPLATE MANAGER MODAL
 ════════════════════════════════════════════════════ */
+// ── ヘルパー ──────────────────────────────────────
+function getTemplateById(id) {
+  return tmLoad().find(t => t.id === id) || null;
+}
+
+// ── モーダル開閉 ──────────────────────────────────
 function openTplManager() {
   $('tpl-manager-modal').classList.remove('hidden');
   renderTplManager();
@@ -576,61 +582,32 @@ function closeTplManager() {
   $('tpl-manager-modal').classList.add('hidden');
 }
 
+// ── 左ペイン：一覧を全再描画 ──────────────────────
 function renderTplManager() {
   const templates = tmLoad();
   const list = $('tpl-list');
   list.innerHTML = '';
 
-  templates.forEach((tpl, i) => {
-    const item = document.createElement('div');
-    item.className = 'tpl-item';
-    item.innerHTML = `
-      <div class="tpl-item-head">
-        <input class="tpl-icon-inp" type="text" value="${esc(tpl.icon||'📄')}" data-idx="${i}" maxlength="4" title="アイコン">
-        <input class="tpl-name-inp" type="text" value="${esc(tpl.name)}" data-idx="${i}" placeholder="テンプレート名">
-        
-        <button class="tpl-del-btn" data-idx="${i}" title="削除">✕</button>
-      </div>
-     
-    `;
-     /*<textarea class="tpl-body" data-idx="${i}" placeholder="テンプレート本文…" rows="5">${esc(tpl.content||'')}</textarea>
-    */
-    /* <select class="tpl-ext-sel" data-idx="${i}">
-          <option value="md" ${tpl.ext==='md'?'selected':''}>md</option>
-          <option value="txt" ${tpl.ext==='txt'?'selected':''}>txt</option>
-        </select> */
-    list.appendChild(item);
-    renderTplSidebarItem();
+  templates.forEach(tpl => {
+    const el = renderTplSidebarItem(tpl, false);
+    list.appendChild(el);
   });
 
-  // events
-  list.querySelectorAll('.tpl-icon-inp').forEach(el => {
-    el.addEventListener('input', () => {
-      const tpls = tmLoad(); tpls[+el.dataset.idx].icon = el.value; tmSave(tpls);
-    });
-  });
-  list.querySelectorAll('.tpl-name-inp').forEach(el => {
-    el.addEventListener('input', () => {
-      const tpls = tmLoad(); tpls[+el.dataset.idx].name = el.value; tmSave(tpls);
-    });
-  });
-  list.querySelectorAll('.tpl-ext-sel').forEach(el => {
-    el.addEventListener('change', () => {
-      const tpls = tmLoad(); tpls[+el.dataset.idx].ext = el.value; tmSave(tpls);
-    });
-  });
-  list.querySelectorAll('.tpl-body').forEach(el => {
-    el.addEventListener('input', () => {
-      const tpls = tmLoad(); tpls[+el.dataset.idx].content = el.value; tmSave(tpls);
-    });
-  });
-  list.querySelectorAll('.tpl-del-btn').forEach(el => {
-    el.addEventListener('click', () => {
-      if (!confirm('このテンプレートを削除しますか？')) return;
-      const tpls = tmLoad(); tpls.splice(+el.dataset.idx, 1); tmSave(tpls);
-      renderTplManager();
-    });
-  });
+  // 一覧が空なら空状態を表示
+  showTplEmpty(templates.length === 0);
+}
+
+// ── サイドバー1項目を生成して返す ─────────────────
+function renderTplSidebarItem(tpl, isActive = false) {
+  const el = document.createElement('div');
+  el.className = 'tpl-sidebar-item' + (isActive ? ' active' : '');
+  el.dataset.id = tpl.id;
+  el.innerHTML = `
+    <span class="tpl-sidebar-item-icon">${esc(tpl.icon || '📄')}</span>
+    <span class="tpl-sidebar-item-name">${esc(tpl.name || '無題')}</span>
+  `;
+  el.addEventListener('click', () => selectTemplate(tpl.id));
+  return el;
 }
 
 /* ────────────────────────────────────────────────────
@@ -974,20 +951,44 @@ $('nf-open-tpl-mgr').addEventListener('click', () => {
 // Template manager modal
 $('tpl-mgr-close').addEventListener('click', closeTplManager);
 $('tpl-mgr-bg').addEventListener('click', closeTplManager);
+
+// テンプレート追加
 $('tpl-add-btn').addEventListener('click', () => {
-  const tpls = tmLoad();
+  const tpls  = tmLoad();
   const newTpl = { id: genId(), name: '新しいテンプレート', icon: '📄', ext: 'md', content: '' };
   tpls.push(newTpl);
   tmSave(tpls);
-  renderTplSidebarItem(newTpl, true);
-  // scroll to bottom
-  $('tpl-list').lastElementChild?.scrollIntoView({ behavior: 'smooth' });
+
+  // サイドバーに追加して即選択
+  const el = renderTplSidebarItem(newTpl, false);
+  $('tpl-list').appendChild(el);
+  el.scrollIntoView({ behavior: 'smooth' });
+  selectTemplate(newTpl.id);
 });
+
 $('tpl-reset-btn').addEventListener('click', () => {
-  if (!confirm('テンプレートをデフォルトに戻しますか？')) return;
-  tmSave(defaultTemplates());
-  renderTplManager();
-  toast('テンプレートをリセットしました');
+  const id = $('tpl-edit-form').dataset.currentId;
+  if (!id) return;
+  if (!confirm('このテンプレートを削除しますか？')) return;
+
+  const tpls    = tmLoad();
+  const newTpls = tpls.filter(t => t.id !== id);
+  tmSave(newTpls);
+
+  // サイドバーから該当行を削除
+  document.querySelector(`.tpl-sidebar-item[data-id="${id}"]`)?.remove();
+
+  // 空状態に戻す
+  showTplEmpty(true);
+  $('tpl-edit-form').dataset.currentId = '';
+
+  toast('テンプレートを削除しました');
+});
+$('tpl-name-input').addEventListener('input', saveTplForm);
+$('tpl-content-input').addEventListener('input', saveTplForm);
+$('tpl-save-btn').addEventListener('click', () => {
+  saveTplForm();
+  toast('保存しました');
 });
 
 /* ────────────────────────────────────────────────────
@@ -1047,78 +1048,91 @@ Safari/Firefox ではダウンロードになります。
   editor.focus();
 })();
 
+// ── 右ペイン：テンプレートを選択してフォームに表示 ──
+function selectTemplate(id) {
+  const tpl = getTemplateById(id);
+  if (!tpl) return;
+
+  // サイドバーのアクティブ切り替え
+  document.querySelectorAll('.tpl-sidebar-item').forEach(el =>
+    el.classList.toggle('active', el.dataset.id === id)
+  );
+
+  // フォームに値をセット
+  $('tpl-name-input').value    = tpl.name    || '';
+  $('tpl-content-input').value = tpl.content || '';
+
+  // 現在編集中のIDを記憶
+  $('tpl-edit-form').dataset.currentId = id;
+
+  // 空状態→フォームへ切り替え
+  showTplEmpty(false);
+
+  // 行番号リセット
+  if (window.tplEditorRefresh) window.tplEditorRefresh();
+}
+
+// ── 空状態 / フォームの表示切り替え ────────────────
+function showTplEmpty(isEmpty) {
+  $('tpl-empty').style.display     = isEmpty ? '' : 'none';
+  $('tpl-edit-form').classList.toggle('hidden', isEmpty);
+}
+
+// ── フォームの変更をストレージに保存 ─────────────
+function saveTplForm() {
+  const id = $('tpl-edit-form').dataset.currentId;
+  if (!id) return;
+  const tpls = tmLoad();
+  const tpl  = tpls.find(t => t.id === id);
+  if (!tpl) return;
+
+  tpl.name    = $('tpl-name-input').value;
+  tpl.content = $('tpl-content-input').value;
+  tmSave(tpls);
+
+  // サイドバーの表示名も更新
+  const sidebarItem = document.querySelector(`.tpl-sidebar-item[data-id="${id}"]`);
+  if (sidebarItem) {
+    sidebarItem.querySelector('.tpl-sidebar-item-name').textContent = tpl.name || '無題';
+    sidebarItem.querySelector('.tpl-sidebar-item-icon').textContent = tpl.icon || '📄';
+  }
+}
+
+// ── イベント登録 ──────────────────────────────────
+// モーダルを閉じる
+
+// 削除ボタン（右ペインの「削除」）
+
+
+// 保存ボタン
+
+
+// フォームの入力をリアルタイム保存したい場合はこちらも追加可能
+
+
 /* ──────────────────────────────────────────────
-   しずく — tpl-manager-editor.js
-   テンプレート管理エディタの行番号同期スニペット
-   既存の app.js に組み込む（またはそのまま追記）
+   行番号同期
 ────────────────────────────────────────────── */
-
 (function () {
-  const textarea   = document.getElementById('tpl-content-input');
-  const lineNums   = document.getElementById('tpl-line-numbers');
-
+  const textarea = document.getElementById('tpl-content-input');
+  const lineNums = document.getElementById('tpl-line-numbers');
   if (!textarea || !lineNums) return;
 
-  /** 行番号を再描画 */
   function updateLineNumbers() {
     const lines = textarea.value.split('\n').length;
-    const nums  = Array.from({ length: lines }, (_, i) => i + 1).join('\n');
-    lineNums.textContent = nums;
+    lineNums.textContent = Array.from({ length: lines }, (_, i) => i + 1).join('\n');
   }
-
-  /** テキストエリアのスクロールに行番号を追従 */
   function syncScroll() {
     lineNums.scrollTop = textarea.scrollTop;
   }
 
   textarea.addEventListener('input',  updateLineNumbers);
   textarea.addEventListener('scroll', syncScroll);
-
-  /* 初期描画 */
   updateLineNumbers();
 
-  /* テンプレート切り替え時（app.js 側で内容をセットした後に呼ぶ） */
   window.tplEditorRefresh = function () {
     updateLineNumbers();
     lineNums.scrollTop = 0;
     textarea.scrollTop = 0;
   };
 })();
-
-/* ──────────────────────────────────────────────
-   app.js 側でテンプレートリスト項目を生成する際のサンプル
-   既存の tpl-list / tpl-list-container を
-   tpl-sidebar-list に対応させる参考コードです
-────────────────────────────────────────────── */
-
-
-function renderTplSidebarItem(tpl, isActive) {
-  const el = document.createElement('div');
-  el.className = 'tpl-sidebar-item' + (isActive ? ' active' : '');
-  el.dataset.id = tpl.id;
-  el.innerHTML = `
-    <span class="tpl-sidebar-item-icon">◈</span>
-    <span class="tpl-sidebar-item-name">${escapeHtml(tpl.name)}</span>
-  `;
-  el.addEventListener('click', () => selectTemplate(tpl.id));
-  return el;
-}
-
-function selectTemplate(id) {
-  // 全アイテムの active を外す
-  document.querySelectorAll('.tpl-sidebar-item').forEach(el => el.classList.remove('active'));
-  // 選択アイテムに active を付ける
-  document.querySelector(`.tpl-sidebar-item[data-id="${id}"]`)?.classList.add('active');
-
-  // フォームに値をセット
-  const tpl = getTemplateById(id); // app.js 側の関数
-  document.getElementById('tpl-name-input').value    = tpl.name;
-  document.getElementById('tpl-content-input').value = tpl.content;
-
-  // 空状態を隠してフォームを表示
-  document.getElementById('tpl-empty').style.display    = 'none';
-  document.getElementById('tpl-edit-form').classList.remove('hidden');
-
-  // 行番号をリセット
-  if (window.tplEditorRefresh) window.tplEditorRefresh();
-}
