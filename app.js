@@ -588,15 +588,17 @@ function renderTplManager() {
       <div class="tpl-item-head">
         <input class="tpl-icon-inp" type="text" value="${esc(tpl.icon||'📄')}" data-idx="${i}" maxlength="4" title="アイコン">
         <input class="tpl-name-inp" type="text" value="${esc(tpl.name)}" data-idx="${i}" placeholder="テンプレート名">
-        /* <select class="tpl-ext-sel" data-idx="${i}">
+        
+        <button class="tpl-del-btn" data-idx="${i}" title="削除">✕</button>
+      </div>
+     
+    `;
+     /*<textarea class="tpl-body" data-idx="${i}" placeholder="テンプレート本文…" rows="5">${esc(tpl.content||'')}</textarea>
+    */
+    /* <select class="tpl-ext-sel" data-idx="${i}">
           <option value="md" ${tpl.ext==='md'?'selected':''}>md</option>
           <option value="txt" ${tpl.ext==='txt'?'selected':''}>txt</option>
         </select> */
-        <button class="tpl-del-btn" data-idx="${i}" title="削除">✕</button>
-      </div>
-      /*<textarea class="tpl-body" data-idx="${i}" placeholder="テンプレート本文…" rows="5">${esc(tpl.content||'')}</textarea>
-    */
-    `;
     list.appendChild(item);
     renderTplSidebarItem();
   });
@@ -976,7 +978,7 @@ $('tpl-add-btn').addEventListener('click', () => {
   const tpls = tmLoad();
   tpls.push({ id: genId(), name: '新しいテンプレート', icon: '📄', ext: 'md', content: '' });
   tmSave(tpls);
-  renderTplManager();
+  renderTplSidebarItem();
   // scroll to bottom
   $('tpl-list').lastElementChild?.scrollIntoView({ behavior: 'smooth' });
 });
