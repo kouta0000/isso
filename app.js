@@ -1136,3 +1136,46 @@ function saveTplForm() {
     textarea.scrollTop = 0;
   };
 })();
+/* ════════════════════════════════
+   MAIN EDITOR — 行番号・文字数
+════════════════════════════════ */
+(function () {
+  const editor   = document.getElementById('editor');
+  const lineNums = document.getElementById('editor-line-numbers');
+  const wordCount = document.getElementById('editor-word-count');
+  if (!editor || !lineNums) return;
+
+  function updateLineNumbers() {
+    const lines = editor.value.split('\n').length;
+    lineNums.textContent = Array.from({ length: lines }, (_, i) => i + 1).join('\n');
+  }
+
+  function updateWordCount() {
+    const len = editor.value.length;
+    wordCount.textContent = len.toLocaleString('ja-JP') + ' 文字';
+  }
+
+  function syncScroll() {
+    lineNums.scrollTop = editor.scrollTop;
+  }
+
+  editor.addEventListener('input', () => {
+    updateLineNumbers();
+    updateWordCount();
+  });
+  editor.addEventListener('scroll', syncScroll);
+
+  updateLineNumbers();
+  updateWordCount();
+
+  /* ファイル名をクロームバーに反映（既存の filename 更新処理と連動） */
+  const filenameEl = document.getElementById('editor-chrome-filename');
+  const filenameInput = document.getElementById('filename'); // 既存の要素
+  if (filenameEl && filenameInput) {
+    const syncFilename = () => {
+      filenameEl.textContent = filenameInput.value || '無題.md';
+    };
+    filenameInput.addEventListener('input', syncFilename);
+    syncFilename();
+  }
+})();
