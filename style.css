@@ -874,7 +874,17 @@ body.focus #editor { padding-top: 88px; }
 
 /* Toggle switch */
 .nf-switch {
-  display: flex; align-items: center; gap: 10px; cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* クリック判定をスライダーのみに限定 */
+.nf-switch-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 #nf-fm-toggle {
   appearance: none; -webkit-appearance: none;
