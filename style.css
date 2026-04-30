@@ -885,6 +885,9 @@ body.focus #editor { padding-top: 88px; }
   align-items: center;
   cursor: pointer;
   flex-shrink: 0;
+  width: 36px;   /* .nf-slider の width と揃える */
+  height: 20px;  /* .nf-slider の height と揃える */
+  position: relative;  /* input の absolute の基点にする */
 }
 #nf-fm-toggle {
   appearance: none; -webkit-appearance: none;
