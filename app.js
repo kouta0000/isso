@@ -976,9 +976,10 @@ $('tpl-mgr-close').addEventListener('click', closeTplManager);
 $('tpl-mgr-bg').addEventListener('click', closeTplManager);
 $('tpl-add-btn').addEventListener('click', () => {
   const tpls = tmLoad();
-  tpls.push({ id: genId(), name: '新しいテンプレート', icon: '📄', ext: 'md', content: '' });
+  const newTpl = { id: genId(), name: '新しいテンプレート', icon: '📄', ext: 'md', content: '' };
+  tpls.push(newTpl);
   tmSave(tpls);
-  renderTplSidebarItem();
+  renderTplSidebarItem(newTpl, true);
   // scroll to bottom
   $('tpl-list').lastElementChild?.scrollIntoView({ behavior: 'smooth' });
 });
