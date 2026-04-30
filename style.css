@@ -1429,9 +1429,3 @@ body.focus #editor { padding-top: 88px; }
     max-height: 180px;
   }
   .tpl-chrome-hint { display: none; }
-
-/* ════════════════════════════════
-   既存のテンプレート管理スタイルを上書き
-   （style.css 内の古い宣言を無効化）
-════════════════════════════════ */
-#tpl-manager-modal .nf-container { all: unset; }
