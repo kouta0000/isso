@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>minima</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500&family=Noto+Serif+JP:wght@300;400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        bg:'#edeae4', surface:'#f4f1ec', hi:'#faf8f5',
+        ink:'#1e1a16', mid:'#5c5650', soft:'#958e85',
+        ghost:'#bdb6ac', border:'#d8d2c8', 'border-soft':'#e4dfd7',
+        accent:'#6b5e4c', accent2:'#a07850', ok:'#527a64', ng:'#9a5555',
+      },
+      fontFamily: {
+        sans:['"Noto Sans JP"','sans-serif'],
+        serif:['"Noto Serif JP"','serif'],
+        mono:['"DM Mono"','monospace'],
+      },
+    }
+  }
+}
+</script>
+<style>
+/* ── Base ── */
+*,*::before,*::after{box-sizing:border-box;}
+html,body{height:100%;margin:0;padding:0;}
+body{font-family:"Noto Sans JP",sans-serif;font-size:14px;background:#edeae4;color:#1e1a16;
+  -webkit-font-smoothing:antialiased;overflow:hidden;height:100dvh;}
+::selection{background:rgba(107,94,76,.16);}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-thumb{background:#d8d2c8;border-radius:2px;}
+
+/* ── Grain ── */
+#grain{position:fixed;inset:0;pointer-events:none;z-index:9000;opacity:.028;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:200px;mix-blend-mode:multiply;}
+
+/* ── App ── */
+#app{display:flex;height:100dvh;overflow:hidden;animation:appEnter .5s cubic-bezier(0.16,1,0.3,1) both;}
+@keyframes appEnter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{from{opacity:0;transform:scale(.95) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(100%)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Sidebar ── */
+#sidebar{position:fixed;top:0;left:0;bottom:0;width:260px;background:#f4f1ec;
+  border-right:1px solid #d8d2c8;z-index:300;display:flex;flex-direction:column;
+  transform:translateX(-100%);transition:transform .32s cubic-bezier(0.16,1,0.3,1),box-shadow .32s;}
+#sidebar.open{transform:translateX(0);box-shadow:8px 0 40px rgba(30,26,22,.12);}
+#sb-overlay{position:fixed;inset:0;background:rgba(30,26,22,.22);backdrop-filter:blur(4px);
+  z-index:290;opacity:0;pointer-events:none;transition:opacity .28s;}
+#sb-overlay.active{opacity:1;pointer-events:all;}
+
+/* ── File row ── */
+.fi{display:flex;align-items:center;gap:8px;padding:9px 36px 9px 10px;
+  border-radius:4px;cursor:pointer;transition:background .12s;position:relative;overflow:hidden;min-height:52px;}
+.fi::before{content:'';position:absolute;left:0;top:15%;bottom:15%;width:2px;
+  border-radius:1px;background:#6b5e4c;opacity:0;transition:opacity .15s;}
+.fi:hover{background:#edeae4;} .fi.active{background:#e4dfd7;}
+.fi.active::before{opacity:1;}
+.fi-del{position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  width:24px;height:24px;display:flex;align-items:center;justify-content:center;
+  background:transparent;border:none;border-radius:3px;color:#958e85;
+  font-size:13px;cursor:pointer;opacity:.2;transition:opacity .12s,color .12s,background .12s;}
+.fi-del:hover{opacity:.9;background:rgba(154,85,85,.12);color:#9a5555;}
+.fi.active .fi-del{opacity:.4;}
+
+/* ── Top bar ── */
+#topbar{height:52px;display:flex;align-items:center;padding:0 14px;gap:8px;
+  background:#f4f1ec;border-bottom:1px solid #e4dfd7;flex-shrink:0;z-index:10;
+  transition:opacity .4s;}
+#logo::after{content:'';position:absolute;bottom:-2px;left:3px;right:3px;height:1px;
+  background:linear-gradient(90deg,#6b5e4c 0%,transparent 100%);opacity:.4;}
+.nav-btn{background:none;border:none;cursor:pointer;color:#958e85;padding:6px;
+  border-radius:4px;display:flex;align-items:center;justify-content:center;
+  transition:color .12s,background .12s;}
+.nav-btn:hover{color:#1e1a16;background:#edeae4;}
+.nav-btn.active{color:#1e1a16;background:#e4dfd7;}
+.fmt-btn{background:none;border:none;font-family:"DM Mono",monospace;font-size:10px;
+  color:#958e85;cursor:pointer;padding:4px 9px;transition:all .12s;}
+.fmt-btn.active{background:#6b5e4c;color:#faf8f5;}
+.fmt-btn:not(.active):hover{color:#1e1a16;background:#e4dfd7;}
+.save-btn{font-family:"Noto Sans JP",sans-serif;font-size:12px;font-weight:500;
+  color:#faf8f5;background:#6b5e4c;border:none;cursor:pointer;
+  padding:6px 16px;border-radius:4px;transition:background .15s,transform .1s;
+  box-shadow:0 1px 3px rgba(107,94,76,.3);}
+.save-btn:hover{background:#1e1a16;}
+.save-btn:active{transform:translateY(1px);}
+
+/* ── Editor ── */
+#content{flex:1;overflow:hidden;display:flex;position:relative;padding:20px;background:#edeae4;}
+#editor-shell{flex:1;display:flex;flex-direction:column;overflow:hidden;
+  border:1px solid #d8d2c8;border-radius:7px;background:#edeae4;
+  box-shadow:inset 0 1px 4px rgba(30,26,22,.04);}
+#editor-chrome{display:flex;align-items:center;gap:10px;padding:0 14px;height:36px;
+  background:#f4f1ec;border-bottom:1px solid #e4dfd7;flex-shrink:0;}
+.chrome-dots{display:flex;gap:5px;}
+.chrome-dot{display:block;width:9px;height:9px;border-radius:50%;}
+#editor-body{flex:1;display:flex;overflow:hidden;}
+#editor-line-numbers{padding:20px 0 20px 14px;min-width:44px;text-align:right;
+  font-family:"DM Mono",monospace;font-size:14px;line-height:2;color:#bdb6ac;
+  opacity:.45;user-select:none;overflow:hidden;flex-shrink:0;
+  border-right:1px solid #e4dfd7;background:#f4f1ec;white-space:pre;}
+#editor{flex:1;background:transparent;border:none;outline:none;resize:none;
+  font-family:"DM Mono",monospace;font-size:20px;font-weight:300;line-height:2;
+  color:#1e1a16;caret-color:#a07850;padding:20px 40px;letter-spacing:.01em;}
+#editor::placeholder{color:#bdb6ac;font-style:italic;opacity:.7;}
+#editor-footer{display:flex;align-items:center;justify-content:flex-end;
+  padding:5px 16px;background:#f4f1ec;border-top:1px solid #e4dfd7;flex-shrink:0;}
+
+/* ── Preview ── */
+#preview-wrap{position:absolute;inset:0;background:#faf8f5;overflow-y:auto;z-index:20;
+  animation:fadeIn .2s;display:none;}
+#preview-wrap.open{display:block;}
+#preview-inner{max-width:680px;margin:0 auto;padding:32px 28px 100px;}
+#preview-close{display:inline-flex;align-items:center;gap:5px;background:none;
+  border:1px solid #d8d2c8;font-family:"Noto Sans JP",sans-serif;font-size:11px;
+  color:#958e85;cursor:pointer;padding:5px 14px;border-radius:20px;margin-bottom:28px;
+  transition:all .12s;}
+#preview-close:hover{color:#1e1a16;border-color:#6b5e4c;background:#edeae4;}
+#preview-body{font-family:"Noto Serif JP",serif;font-size:16px;line-height:2.1;color:#1e1a16;}
+#preview-body h1{font-size:1.9em;font-weight:300;margin:0 0 .7em;border-bottom:1px solid #e4dfd7;padding-bottom:.5em;}
+#preview-body h2{font-size:1.28em;font-weight:400;margin:2em 0 .55em;border-bottom:1px solid #e4dfd7;padding-bottom:.35em;color:#5c5650;}
+#preview-body h3{font-size:1.06em;font-style:italic;margin:1.5em 0 .45em;color:#958e85;}
+#preview-body p{margin:0 0 1.1em;}
+#preview-body a{color:#6b5e4c;text-decoration:underline;text-underline-offset:3px;text-decoration-color:#d8d2c8;}
+#preview-body strong{font-weight:500;} #preview-body em{font-style:italic;color:#5c5650;}
+#preview-body code{font-family:"DM Mono",monospace;font-size:.84em;background:#edeae4;border:1px solid #e4dfd7;padding:1px 6px;border-radius:3px;color:#6b5e4c;}
+#preview-body pre{background:#edeae4;border:1px solid #e4dfd7;padding:18px 20px;border-radius:4px;overflow-x:auto;margin:1.2em 0;}
+#preview-body pre code{background:none;border:none;padding:0;color:#1e1a16;}
+#preview-body blockquote{border-left:2px solid #6b5e4c;margin:1.4em 0;padding:.1em 0 .1em 18px;color:#5c5650;font-style:italic;opacity:.75;}
+#preview-body ul,#preview-body ol{padding-left:1.6em;margin:0 0 1em;}
+#preview-body li{margin:.35em 0;}
+#preview-body hr{border:none;border-top:1px solid #e4dfd7;margin:2.2em 0;}
+#preview-body img{max-width:100%;border-radius:7px;}
+#preview-body table{border-collapse:collapse;width:100%;margin:1.2em 0;font-size:.88em;}
+#preview-body th,#preview-body td{border:1px solid #d8d2c8;padding:8px 12px;}
+#preview-body th{background:#edeae4;font-weight:500;}
+
+/* ── Status bar ── */
+#statusbar{height:28px;display:flex;align-items:center;gap:8px;padding:0 18px;
+  background:#f4f1ec;border-top:1px solid #e4dfd7;font-size:11px;color:#bdb6ac;
+  font-family:"DM Mono",monospace;flex-shrink:0;transition:opacity .4s;}
+#st-msg{margin-left:auto;font-style:italic;color:#958e85;font-family:"Noto Sans JP",sans-serif;}
+
+/* ── Focus mode ── */
+body.focus #topbar,body.focus #statusbar{opacity:0;pointer-events:none;}
+body.focus #editor{padding-top:88px;}
+
+/* ── Toast ── */
+#toast{position:fixed;bottom:44px;left:50%;transform:translateX(-50%) translateY(12px);
+  background:#1e1a16;color:#faf8f5;font-family:"Noto Sans JP",sans-serif;font-size:13px;
+  padding:9px 22px;border-radius:22px;opacity:0;pointer-events:none;
+  transition:opacity .2s,transform .22s cubic-bezier(0.16,1,0.3,1);
+  white-space:nowrap;z-index:8000;box-shadow:0 4px 20px rgba(30,26,22,.22);}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── Modal backdrop ── */
+.modal-wrap{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;
+  justify-content:center;padding:16px;}
+.modal-wrap.hidden{display:none;}
+.modal-bg{position:absolute;inset:0;background:rgba(30,26,22,.78);backdrop-filter:blur(6px);}
+.modal-box{animation:popIn .24s cubic-bezier(0.16,1,0.3,1);}
+
+/* ── Share modal ── */
+#share-box{background:#faf8f5;border:1px solid #e4dfd7;border-radius:7px;
+  width:100%;max-width:420px;max-height:88vh;overflow-y:auto;position:relative;z-index:1;
+  box-shadow:0 16px 48px rgba(30,26,22,.13);}
+.tab{background:none;border:none;border-bottom:2px solid transparent;
+  font-family:"Noto Sans JP",sans-serif;font-size:12px;color:#958e85;cursor:pointer;
+  padding:10px 13px 8px;margin-bottom:-1px;transition:color .12s;}
+.tab:hover{color:#1e1a16;}
+.tab.active{color:#1e1a16;border-bottom-color:#6b5e4c;font-weight:500;}
+.tab-body{display:none;padding:20px;}
+.tab-body.active{display:block;}
+.field{width:100%;background:#edeae4;border:1px solid #d8d2c8;border-radius:4px;
+  font-family:"Noto Sans JP",sans-serif;font-size:13px;font-weight:300;
+  color:#1e1a16;padding:9px 12px;outline:none;transition:border-color .15s,box-shadow .15s;resize:vertical;}
+.field:focus{border-color:#6b5e4c;box-shadow:0 0 0 3px rgba(107,94,76,.1);}
+.field::placeholder{color:#bdb6ac;}
+.act-btn{background:#6b5e4c;border:1px solid transparent;font-family:"Noto Sans JP",sans-serif;
+  font-size:12px;font-weight:500;color:#faf8f5;cursor:pointer;padding:9px 20px;border-radius:4px;
+  transition:background .15s,transform .1s;box-shadow:0 1px 3px rgba(107,94,76,.25);}
+.act-btn:hover{background:#1e1a16;}
+.act-btn:active{transform:translateY(1px);}
+.act-btn.ghost{background:none;border-color:#d8d2c8;color:#5c5650;box-shadow:none;}
+.act-btn.ghost:hover{background:#edeae4;color:#1e1a16;border-color:#6b5e4c;}
+
+/* ═══════════════════════════════════════════
+   NEW FILE MODAL — スマホ対応
+   デスクトップ: 2カラム横並び
+   スマホ: 1カラム縦スクロール
+═══════════════════════════════════════════ */
+#nf-box{background:#f4f1ec;border:1px solid #d8d2c8;border-radius:7px;
+  width:100%;max-width:800px;max-height:90vh;
+  position:relative;z-index:1;box-shadow:0 16px 48px rgba(30,26,22,.13);
+  display:flex;flex-direction:column;overflow:hidden;}
+#nf-body{display:flex;flex:1;overflow:hidden;min-height:0;}
+#nf-tpl-col{flex:1;padding:20px;overflow-y:auto;min-width:0;}
+#nf-fm-col{width:300px;flex-shrink:0;padding:20px;overflow-y:auto;
+  background:#edeae4;border-left:1px solid #e4dfd7;}
+#nf-tpl-grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));}
+
+/* スマホ: 縦スクロール1カラム */
+@media(max-width:600px){
+  .modal-wrap{padding:0;align-items:flex-end;}
+  #nf-box{max-width:100%;max-height:92dvh;border-radius:16px 16px 0 0;
+    border-bottom:none;animation:slideUp .3s cubic-bezier(0.16,1,0.3,1);}
+  #nf-body{flex-direction:column;overflow-y:auto;}
+  #nf-fm-col{width:100%;border-left:none;border-top:1px solid #e4dfd7;}
+  #nf-tpl-grid{grid-template-columns:repeat(3,1fr);}
+  /* share modal */
+  #share-box{max-width:100%;border-radius:16px 16px 0 0;border-bottom:none;}
+  /* github modal */
+  #gh-box{max-width:100%;border-radius:16px 16px 0 0;border-bottom:none;}
+}
+
+/* nf-tpl-btn */
+.nf-tpl-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:8px;padding:16px 10px;background:#faf8f5;border:1px solid #e4dfd7;
+  border-radius:7px;cursor:pointer;transition:all .15s;text-align:center;
+  position:relative;overflow:hidden;}
+.nf-tpl-btn::before{content:'';position:absolute;inset:0 auto auto 0;
+  width:100%;height:2px;background:#6b5e4c;opacity:0;transition:opacity .15s;}
+.nf-tpl-btn:hover{background:#f4f1ec;border-color:#6b5e4c;
+  box-shadow:0 3px 10px rgba(30,26,22,.08);transform:translateY(-1px);}
+.nf-tpl-btn:hover::before{opacity:1;}
+.nf-tpl-btn:active{transform:translateY(0);}
+.nf-tpl-icon{font-size:22px;line-height:1;transition:transform .15s;}
+.nf-tpl-btn:hover .nf-tpl-icon{transform:scale(1.1);}
+.nf-tpl-name{font-size:11px;font-weight:500;color:#5c5650;}
+
+/* toggle */
+.toggle-slider{display:inline-block;width:34px;height:19px;background:#bdb6ac;
+  border-radius:19px;position:relative;transition:background .2s;cursor:pointer;flex-shrink:0;}
+.toggle-slider::before{content:'';position:absolute;width:13px;height:13px;background:#fff;
+  border-radius:50%;top:3px;left:3px;transition:transform .2s;
+  box-shadow:0 1px 3px rgba(30,26,22,.15);}
+.toggle-input{position:absolute;opacity:0;width:0;height:0;}
+.toggle-input:checked+.toggle-slider{background:#527a64;}
+.toggle-input:checked+.toggle-slider::before{transform:translateX(15px);}
+
+/* fm-body transition */
+.fm-body{transition:max-height .3s,opacity .25s;overflow:hidden;}
+.fm-body.collapsed{max-height:0!important;opacity:0;pointer-events:none;}
+
+/* fm-row */
+.fm-row{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
+.fm-row input{flex:1;box-sizing:border-box;padding:7px 10px;background:#faf8f5;
+  border:1px solid #d8d2c8;border-radius:4px;color:#1e1a16;
+  font-family:"DM Mono",monospace;font-size:12px;outline:none;
+  transition:border-color .15s,box-shadow .15s;}
+.fm-row input:focus{background:#fff;border-color:#6b5e4c;box-shadow:0 0 0 3px rgba(107,94,76,.1);}
+.fm-key{max-width:80px;flex:none!important;}
+.fm-check{width:14px;height:14px;cursor:pointer;accent-color:#6b5e4c;flex-shrink:0;}
+.fm-sep{color:#bdb6ac;font-size:11px;flex-shrink:0;}
+.fm-del{background:transparent;border:none;color:#958e85;cursor:pointer;
+  font-size:13px;padding:2px 4px;border-radius:3px;opacity:.35;
+  transition:opacity .12s,color .12s,background .12s;}
+.fm-del:hover{opacity:.9;color:#9a5555;background:rgba(154,85,85,.1);}
+
+/* tpl manager */
+#tpl-mgr-box{background:#f4f1ec;border:1px solid #d8d2c8;border-radius:7px;
+  position:relative;z-index:1;box-shadow:0 16px 48px rgba(30,26,22,.13);
+  display:flex;flex-direction:column;overflow:hidden;
+  width:min(880px,94vw);height:min(600px,88dvh);}
+.tpl-mgr-body{display:grid;grid-template-columns:200px 1fr;flex:1;overflow:hidden;}
+.tpl-sidebar-item{display:flex;align-items:center;gap:8px;padding:9px 10px;
+  border-radius:4px;cursor:pointer;transition:background .12s;position:relative;}
+.tpl-sidebar-item::before{content:'';position:absolute;left:0;top:20%;bottom:20%;
+  width:2px;border-radius:1px;background:#6b5e4c;opacity:0;transition:opacity .15s;}
+.tpl-sidebar-item:hover{background:#f4f1ec;}
+.tpl-sidebar-item.active{background:#e4dfd7;}
+.tpl-sidebar-item.active::before{opacity:1;}
+@media(max-width:600px){
+  .tpl-mgr-body{grid-template-columns:1fr;grid-template-rows:auto 1fr;}
+  #tpl-sidebar{max-height:160px;border-right:none;border-bottom:1px solid #e4dfd7;}
+}
+
+/* GitHub modal */
+#gh-box{background:#faf8f5;border:1px solid #e4dfd7;border-radius:7px;
+  width:100%;max-width:460px;position:relative;z-index:1;
+  box-shadow:0 16px 48px rgba(30,26,22,.13);overflow:hidden;}
+
+/* ── Storage indicator ── */
+#storage-bar{transition:width .4s;height:100%;background:#6b5e4c;border-radius:2px;}
+
+/* ── dot-unsaved ── */
+#dot-unsaved{box-shadow:0 0 6px rgba(160,120,80,.4);}
+
+/* Autosave badge */
+#autosave-badge{transition:opacity .3s;}
+
+/* ── Responsive editor ── */
+@media(max-width:768px){
+  #content{padding:12px;}
+  #editor{font-size:16px;padding:16px 20px;}
+  #editor-line-numbers{display:none;}
+  .chrome-hint{display:none;}
+}
+@media(max-width:480px){
+  #topbar{padding:0 10px;gap:4px;}
+  #btn-focus,#format-picker{display:none;}
+  #editor{font-size:15px;padding:16px;}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;}
+}
+</style>
+</head>
+<body>
+
+<div id="grain"></div>
+
+<div id="app">
+
+<!-- ══ SIDEBAR ══ -->
+<aside id="sidebar">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 14px 10px;border-bottom:1px solid #e4dfd7;flex-shrink:0;">
+    <span style="font-size:10px;font-weight:600;letter-spacing:.12em;color:#958e85;text-transform:uppercase;">ファイル</span>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="display:flex;align-items:center;gap:6px;" id="storage-indicator">
+        <div style="width:48px;height:4px;background:#e4dfd7;border-radius:2px;overflow:hidden;">
+          <div id="storage-bar" style="width:0%;"></div>
+        </div>
+        <span id="storage-text" style="font-size:10px;color:#bdb6ac;font-family:'DM Mono',monospace;">0KB</span>
+      </div>
+      <button id="btn-sb-close" class="nav-btn" style="font-size:13px;padding:4px 6px;">✕</button>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:6px;padding:10px 10px 6px;flex-shrink:0;">
+    <button id="btn-new" style="flex:1;background:none;border:1px solid #d8d2c8;color:#5c5650;
+      font-family:'Noto Sans JP',sans-serif;font-size:12px;padding:7px 8px;border-radius:4px;
+      cursor:pointer;transition:all .12s;" onmouseover="this.style.borderColor='#6b5e4c'" onmouseout="this.style.borderColor='#d8d2c8'">＋ 新規</button>
+    <button id="btn-open" style="flex:1;background:none;border:1px solid #d8d2c8;color:#5c5650;
+      font-family:'Noto Sans JP',sans-serif;font-size:12px;padding:7px 8px;border-radius:4px;
+      cursor:pointer;transition:all .12s;" onmouseover="this.style.borderColor='#6b5e4c'" onmouseout="this.style.borderColor='#d8d2c8'">↑ 開く</button>
+  </div>
+
+  <!-- Search -->
+  <div style="padding:0 10px 8px;flex-shrink:0;">
+    <div style="position:relative;">
+      <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:11px;color:#bdb6ac;pointer-events:none;">🔍</span>
+      <input id="sb-search" type="text" placeholder="検索…"
+        style="width:100%;background:#edeae4;border:1px solid #e4dfd7;border-radius:4px;
+               font-size:12px;color:#1e1a16;padding:6px 28px 6px 28px;outline:none;
+               font-family:'DM Mono',monospace;transition:border-color .15s;"
+        onfocus="this.style.borderColor='#6b5e4c'" onblur="this.style.borderColor='#e4dfd7'">
+      <button id="sb-search-clear" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);
+        background:none;border:none;color:#bdb6ac;cursor:pointer;font-size:11px;display:none;">✕</button>
+    </div>
+  </div>
+
+  <div id="file-list" style="flex:1;overflow-y:auto;padding:4px 8px;"></div>
+
+  <div id="sb-empty" style="display:none;flex-direction:column;align-items:center;
+    justify-content:center;gap:8px;padding:32px 16px;color:#bdb6ac;font-size:13px;">
+    <span style="font-size:26px;opacity:.25;">◇</span><p>ファイルなし</p>
+  </div>
+
+  <div style="border-top:1px solid #e4dfd7;padding:6px 12px;display:flex;align-items:center;gap:8px;
+    background:#faf8f5;flex-shrink:0;">
+    <span style="font-size:10px;color:#bdb6ac;">並び替え</span>
+    <select id="sort-select" style="font-size:11px;background:transparent;border:none;
+      color:#958e85;outline:none;cursor:pointer;">
+      <option value="updated">更新日順</option>
+      <option value="created">作成日順</option>
+      <option value="name">名前順</option>
+    </select>
+  </div>
+</aside>
+
+<div id="sb-overlay"></div>
+
+<!-- ══ MAIN ══ -->
+<div id="main" style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;">
+
+  <header id="topbar">
+    <!-- Left -->
+    <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+      <button id="btn-sidebar" class="nav-btn" title="ファイル一覧">
+        <svg width="18" height="14" viewBox="0 0 18 14" fill="none">
+          <rect y="0" width="18" height="1.8" rx="0.9" fill="currentColor"/>
+          <rect y="6.1" width="18" height="1.8" rx="0.9" fill="currentColor"/>
+          <rect y="12.2" width="11" height="1.8" rx="0.9" fill="currentColor"/>
+        </svg>
+      </button>
+      <div id="logo" style="font-family:'Noto Serif JP',serif;font-size:18px;font-weight:300;
+        color:#6b5e4c;letter-spacing:.18em;user-select:none;padding:0 3px;position:relative;">minima</div>
+    </div>
+
+    <!-- Filename center -->
+    <div style="display:flex;align-items:baseline;gap:2px;flex:1;justify-content:center;min-width:0;">
+      <input id="filename" type="text" value="untitled" spellcheck="false" autocomplete="off"
+        style="background:none;border:none;outline:none;font-family:'Noto Sans JP',sans-serif;
+               font-size:14px;color:#1e1a16;text-align:center;min-width:40px;max-width:200px;
+               padding:4px 8px;border-radius:4px;transition:background .15s;"
+        onfocus="this.style.background='#edeae4'" onblur="this.style.background='none'">
+      <span id="file-ext" style="font-family:'DM Mono',monospace;font-size:11px;color:#bdb6ac;">.md</span>
+      <span id="dot-unsaved" style="width:5px;height:5px;border-radius:50%;background:#a07850;
+        margin-left:4px;opacity:0;transition:opacity .2s;align-self:center;flex-shrink:0;"></span>
+    </div>
+
+    <!-- Right -->
+    <div style="display:flex;align-items:center;gap:3px;flex-shrink:0;">
+      <div id="format-picker" style="display:flex;background:#edeae4;border:1px solid #d8d2c8;border-radius:4px;overflow:hidden;">
+        <button class="fmt-btn active" data-fmt="md">.md</button>
+        <button class="fmt-btn" data-fmt="txt">.txt</button>
+      </div>
+
+      <button id="btn-preview" class="nav-btn" title="プレビュー (⌘P)">
+        <svg width="17" height="13" viewBox="0 0 17 13" fill="none">
+          <path d="M8.5 1C5 1 1.5 6.5 1.5 6.5S5 12 8.5 12 15.5 6.5 15.5 6.5 12 1 8.5 1z" stroke="currentColor" stroke-width="1.3" fill="none"/>
+          <circle cx="8.5" cy="6.5" r="2.2" stroke="currentColor" stroke-width="1.3" fill="none"/>
+        </svg>
+      </button>
+
+      <button id="btn-github" class="nav-btn" title="GitHubへ公開">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M8 1C4.134 1 1 4.134 1 8c0 3.09 2.004 5.716 4.784 6.641.35.064.478-.152.478-.337 0-.166-.006-.606-.01-1.19-1.947.423-2.357-.94-2.357-.94-.318-.808-.776-1.023-.776-1.023-.635-.434.048-.425.048-.425.702.049 1.071.72 1.071.72.624 1.069 1.637.76 2.036.582.063-.452.244-.76.444-.935-1.554-.177-3.188-.777-3.188-3.456 0-.764.273-1.388.72-1.877-.072-.177-.312-.888.069-1.85 0 0 .587-.188 1.923.716A6.71 6.71 0 018 4.998c.595.003 1.194.08 1.754.236 1.334-.904 1.92-.717 1.92-.717.382.963.142 1.674.07 1.85.448.49.72 1.113.72 1.878 0 2.686-1.637 3.277-3.196 3.45.251.217.475.644.475 1.298 0 .936-.009 1.692-.009 1.921 0 .187.126.405.48.337C12.998 13.714 15 11.088 15 8c0-3.866-3.134-7-7-7z" fill="currentColor"/>
+        </svg>
+      </button>
+
+      <button id="btn-share" class="nav-btn" title="共有">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <circle cx="12.5" cy="3.5" r="1.8" stroke="currentColor" stroke-width="1.2" fill="none"/>
+          <circle cx="3.5" cy="8" r="1.8" stroke="currentColor" stroke-width="1.2" fill="none"/>
+          <circle cx="12.5" cy="12.5" r="1.8" stroke="currentColor" stroke-width="1.2" fill="none"/>
+          <line x1="5.2" y1="7.1" x2="10.8" y2="4.4" stroke="currentColor" stroke-width="1.2"/>
+          <line x1="5.2" y1="8.9" x2="10.8" y2="11.6" stroke="currentColor" stroke-width="1.2"/>
+        </svg>
+      </button>
+
+      <button id="btn-focus" class="nav-btn" title="フォーカス (⌘.)">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M2 5V2h3M11 2h3v3M14 11v3h-3M5 14H2v-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+      </button>
+
+      <button id="btn-save" class="save-btn" title="保存 (⌘S)">保存</button>
+    </div>
+  </header>
+
+  <!-- EDITOR -->
+  <div id="content">
+    <div id="editor-shell">
+      <div id="editor-chrome">
+        <div class="chrome-dots">
+          <span class="chrome-dot" style="background:#e0786c;"></span>
+          <span class="chrome-dot" style="background:#d4a843;"></span>
+          <span class="chrome-dot" style="background:#65b863;"></span>
+        </div>
+        <span id="editor-chrome-filename" style="font-family:'DM Mono',monospace;font-size:11px;color:#5c5650;letter-spacing:.04em;"></span>
+        <span id="autosave-badge" style="font-family:'DM Mono',monospace;font-size:10px;color:#527a64;margin-left:8px;opacity:0;">✓ 保存済み</span>
+        <span class="chrome-hint" style="margin-left:auto;font-size:11px;color:#bdb6ac;white-space:nowrap;">
+          <code style="font-family:'DM Mono',monospace;font-size:10px;color:#a07850;background:rgba(160,120,80,.1);padding:1px 5px;border-radius:3px;">{{content}}</code> = 本文 &nbsp;·&nbsp;
+          <code style="font-family:'DM Mono',monospace;font-size:10px;color:#a07850;background:rgba(160,120,80,.1);padding:1px 5px;border-radius:3px;">{{today}}</code> = 今日の日付
+        </span>
+      </div>
+      <div id="editor-body">
+        <div id="editor-line-numbers"></div>
+        <textarea id="editor" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"
+          placeholder="書き始める…"></textarea>
+      </div>
+      <div id="editor-footer">
+        <span id="editor-word-count" style="font-family:'DM Mono',monospace;font-size:11px;color:#bdb6ac;">0 文字</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PREVIEW -->
+  <div id="preview-wrap">
+    <div id="preview-inner">
+      <button id="preview-close">✕ 閉じる</button>
+      <div id="preview-body"></div>
+    </div>
+  </div>
+
+  <!-- STATUSBAR -->
+  <footer id="statusbar">
+    <span id="st-chars">0 文字</span>
+    <span style="opacity:.4;">·</span>
+    <span id="st-lines">1 行</span>
+    <span id="st-msg"></span>
+  </footer>
+</div>
+</div><!-- /app -->
+
+
+<!-- ═══ SHARE MODAL ═══ -->
+<div id="share-modal" class="modal-wrap hidden">
+  <div class="modal-bg" id="share-bg"></div>
+  <div id="share-box" class="modal-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 18px 14px;border-bottom:1px solid #e4dfd7;">
+      <h2 style="font-family:'Noto Serif JP',serif;font-size:17px;font-weight:300;letter-spacing:.07em;color:#1e1a16;">共有</h2>
+      <button id="share-close" class="nav-btn" style="font-size:13px;">✕</button>
+    </div>
+    <div style="display:flex;padding:0 18px;border-bottom:1px solid #e4dfd7;">
+      <button class="tab active" data-tab="qr">QRコード</button>
+      <button class="tab" data-tab="mail">メール</button>
+      <button class="tab" data-tab="copy">コピー</button>
+    </div>
+    <div class="tab-body active" id="tb-qr">
+      <p style="font-size:12px;color:#958e85;margin-bottom:14px;">スキャンして他デバイスにテキストを転送</p>
+      <div id="qr-frame" style="display:flex;justify-content:center;align-items:center;background:#fff;border:1px solid #e4dfd7;border-radius:4px;padding:18px;min-height:180px;margin-bottom:12px;">
+        <div id="qr-placeholder" style="font-size:60px;color:#bdb6ac;opacity:.3;">◫</div>
+        <canvas id="qr-canvas" style="display:none;border-radius:3px;"></canvas>
+      </div>
+      <p id="qr-note" style="font-size:11px;color:#958e85;text-align:center;font-style:italic;min-height:16px;margin-bottom:12px;"></p>
+      <div style="display:flex;gap:8px;">
+        <button id="btn-qr-gen" class="act-btn">生成する</button>
+        <button id="btn-qr-dl" class="act-btn ghost" style="display:none;">保存する</button>
+      </div>
+    </div>
+    <div class="tab-body" id="tb-mail">
+      <p style="font-size:12px;color:#958e85;margin-bottom:14px;">メールアプリでテキストを送信</p>
+      <label style="display:block;font-size:10px;font-weight:600;color:#958e85;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;">送信先</label>
+      <input class="field" type="email" id="mail-to" placeholder="example@email.com">
+      <label style="display:block;font-size:10px;font-weight:600;color:#958e85;letter-spacing:.1em;text-transform:uppercase;margin:14px 0 5px;">件名</label>
+      <input class="field" type="text" id="mail-subject">
+      <label style="display:block;font-size:10px;font-weight:600;color:#958e85;letter-spacing:.1em;text-transform:uppercase;margin:14px 0 5px;">メモ（任意）</label>
+      <textarea class="field" id="mail-memo" rows="2" placeholder="一言メモ…"></textarea>
+      <button id="btn-mail-send" class="act-btn" style="margin-top:16px;">メールアプリを開く</button>
+      <p id="mail-msg" style="font-size:12px;color:#958e85;font-style:italic;margin-top:10px;text-align:center;min-height:16px;"></p>
+    </div>
+    <div class="tab-body" id="tb-copy">
+      <p style="font-size:12px;color:#958e85;margin-bottom:14px;">テキスト全体をクリップボードにコピー</p>
+      <div id="copy-preview" style="background:#edeae4;border:1px solid #e4dfd7;border-radius:4px;padding:14px;font-family:'DM Mono',monospace;font-size:12px;color:#5c5650;line-height:1.8;max-height:150px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;margin-bottom:16px;"></div>
+      <button id="btn-copy" class="act-btn">コピーする</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ NEW FILE MODAL ═══ -->
+<div id="new-file-modal" class="modal-wrap hidden">
+  <div class="modal-bg" id="nf-bg"></div>
+  <div id="nf-box" class="modal-box">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:#faf8f5;border-bottom:1px solid #e4dfd7;flex-shrink:0;">
+      <h2 style="font-family:'Noto Serif JP',serif;font-size:15px;font-weight:300;color:#1e1a16;letter-spacing:.05em;">新規ファイル</h2>
+      <button id="nf-cancel" class="nav-btn" style="font-size:13px;">✕</button>
+    </div>
+    <!-- Body -->
+    <div id="nf-body">
+      <!-- Templates col -->
+      <div id="nf-tpl-col">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <span style="font-size:10px;font-weight:600;color:#958e85;text-transform:uppercase;letter-spacing:.1em;">テンプレート</span>
+          <button id="nf-open-tpl-mgr" style="background:#f4f1ec;border:1px solid #d8d2c8;color:#5c5650;font-size:11px;padding:4px 10px;border-radius:4px;cursor:pointer;transition:all .12s;" onmouseover="this.style.borderColor='#6b5e4c';this.style.color='#6b5e4c'" onmouseout="this.style.borderColor='#d8d2c8';this.style.color='#5c5650'">編集…</button>
+        </div>
+        <div id="nf-tpl-grid"></div>
+      </div>
+      <!-- Frontmatter col -->
+      <div id="nf-fm-col">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <span style="font-size:10px;font-weight:600;color:#958e85;text-transform:uppercase;letter-spacing:.1em;">フロントマター</span>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <span style="position:relative;display:inline-block;">
+              <input type="checkbox" id="nf-fm-toggle" class="toggle-input">
+              <span class="toggle-slider"></span>
+            </span>
+            <span style="font-size:12px;color:#5c5650;">挿入する</span>
+          </label>
+        </div>
+        <div id="nf-fm-body" class="fm-body collapsed" style="max-height:400px;opacity:0;">
+          <div style="font-family:'DM Mono',monospace;font-size:11px;color:#5c5650;background:#faf8f5;padding:10px 12px;border-radius:4px;border:1px solid #e4dfd7;margin-bottom:14px;line-height:1.6;">
+            <code style="color:#a07850;">{{today}}</code> と書くと作成日に置換されます
+          </div>
+          <div id="nf-fm-fields"></div>
+          <button id="nf-fm-add" style="width:100%;padding:9px;background:transparent;border:1px dashed #d8d2c8;color:#958e85;border-radius:4px;cursor:pointer;font-size:12px;margin-top:6px;transition:all .15s;" onmouseover="this.style.borderColor='#6b5e4c';this.style.color='#6b5e4c';this.style.borderStyle='solid'" onmouseout="this.style.borderColor='#d8d2c8';this.style.color='#958e85';this.style.borderStyle='dashed'">＋ フィールドを追加</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ TEMPLATE MANAGER MODAL ═══ -->
+<div id="tpl-manager-modal" class="modal-wrap hidden">
+  <div class="modal-bg" id="tpl-mgr-bg"></div>
+  <div id="tpl-mgr-box" class="modal-box">
+    <header style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:#faf8f5;border-bottom:1px solid #e4dfd7;flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:9px;">
+        <span style="font-size:14px;color:#6b5e4c;opacity:.7;">◈</span>
+        <h2 style="font-family:'Noto Serif JP',serif;font-size:15px;font-weight:300;color:#1e1a16;letter-spacing:.06em;">テンプレート管理</h2>
+      </div>
+      <button id="tpl-mgr-close" class="nav-btn" style="font-size:13px;">✕</button>
+    </header>
+    <div class="tpl-mgr-body">
+      <!-- Left -->
+      <aside id="tpl-sidebar" style="display:flex;flex-direction:column;border-right:1px solid #e4dfd7;background:#edeae4;overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px 10px;border-bottom:1px solid #e4dfd7;flex-shrink:0;">
+          <span style="font-size:10px;font-weight:600;color:#958e85;text-transform:uppercase;letter-spacing:.12em;">テンプレート</span>
+          <button id="tpl-add-btn" style="display:flex;align-items:center;gap:5px;background:none;border:1px solid #d8d2c8;color:#5c5650;font-size:11px;padding:4px 9px;border-radius:4px;cursor:pointer;transition:all .12s;" onmouseover="this.style.borderColor='#6b5e4c';this.style.color='#6b5e4c'" onmouseout="this.style.borderColor='#d8d2c8';this.style.color='#5c5650'">
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>追加
+          </button>
+        </div>
+        <div id="tpl-list" style="flex:1;overflow-y:auto;padding:8px;"></div>
+      </aside>
+      <!-- Right -->
+      <main style="display:flex;flex-direction:column;overflow:hidden;background:#faf8f5;">
+        <div id="tpl-empty" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:40px;">
+          <div style="font-size:32px;color:#bdb6ac;opacity:.3;">◇</div>
+          <p style="font-size:13px;color:#bdb6ac;text-align:center;line-height:1.8;">テンプレートを選択するか、<br>新規追加してください</p>
+        </div>
+        <div id="tpl-edit-form" style="display:none;flex-direction:column;height:100%;overflow:hidden;">
+          <div style="display:flex;align-items:flex-end;gap:12px;padding:16px 20px 14px;border-bottom:1px solid #e4dfd7;flex-shrink:0;background:#f4f1ec;">
+            <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+              <label style="font-size:10px;font-weight:600;color:#958e85;text-transform:uppercase;letter-spacing:.1em;">テンプレート名</label>
+              <input id="tpl-name-input" type="text" placeholder="例：日記、議事録…" spellcheck="false"
+                style="background:#edeae4;border:1px solid #d8d2c8;border-radius:4px;font-family:'Noto Sans JP',sans-serif;font-size:14px;color:#1e1a16;padding:8px 12px;outline:none;width:100%;transition:all .15s;"
+                onfocus="this.style.borderColor='#6b5e4c';this.style.background='#faf8f5'" onblur="this.style.borderColor='#d8d2c8';this.style.background='#edeae4'">
+            </div>
+            <div style="display:flex;gap:8px;flex-shrink:0;">
+              <button id="tpl-reset-btn" style="background:none;border:1px solid #d8d2c8;color:#5c5650;font-size:12px;padding:8px 13px;border-radius:4px;cursor:pointer;transition:all .12s;" onmouseover="this.style.borderColor='#9a5555';this.style.color='#9a5555'" onmouseout="this.style.borderColor='#d8d2c8';this.style.color='#5c5650'">削除</button>
+              <button id="tpl-save-btn" class="save-btn">保存する</button>
+            </div>
+          </div>
+          <!-- Code editor chrome -->
+          <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;margin:16px 20px 0;border:1px solid #d8d2c8;border-radius:7px;background:#edeae4;box-shadow:inset 0 1px 4px rgba(30,26,22,.04);">
+            <div style="display:flex;align-items:center;gap:10px;padding:0 12px;height:34px;background:#f4f1ec;border-bottom:1px solid #e4dfd7;flex-shrink:0;">
+              <div style="display:flex;gap:5px;">
+                <span style="width:8px;height:8px;border-radius:50%;background:#e0786c;display:block;"></span>
+                <span style="width:8px;height:8px;border-radius:50%;background:#d4a843;display:block;"></span>
+                <span style="width:8px;height:8px;border-radius:50%;background:#65b863;display:block;"></span>
+              </div>
+              <span style="font-family:'DM Mono',monospace;font-size:11px;color:#5c5650;">content.md</span>
+              <span style="margin-left:auto;font-size:11px;color:#bdb6ac;white-space:nowrap;" class="chrome-hint">
+                <code style="font-family:'DM Mono',monospace;font-size:10px;color:#a07850;background:rgba(160,120,80,.1);padding:1px 5px;border-radius:3px;">{{content}}</code> = 本文 &nbsp;·&nbsp;
+                <code style="font-family:'DM Mono',monospace;font-size:10px;color:#a07850;background:rgba(160,120,80,.1);padding:1px 5px;border-radius:3px;">{{today}}</code> = 今日
+              </span>
+            </div>
+            <div style="flex:1;display:flex;overflow:hidden;">
+              <div id="tpl-line-numbers" style="padding:14px 0 14px 12px;min-width:36px;text-align:right;font-family:'DM Mono',monospace;font-size:12px;line-height:1.75;color:#bdb6ac;opacity:.55;user-select:none;overflow:hidden;flex-shrink:0;border-right:1px solid #e4dfd7;background:#f4f1ec;white-space:pre;"></div>
+              <textarea id="tpl-content-input" spellcheck="false" autocomplete="off" autocorrect="off"
+                placeholder="# タイトル&#10;&#10;{{content}}&#10;&#10;---&#10;作成日：{{today}}"
+                style="flex:1;background:transparent;border:none;outline:none;resize:none;font-family:'DM Mono',monospace;font-size:13px;font-weight:300;line-height:1.75;color:#1e1a16;caret-color:#a07850;padding:14px 16px;"></textarea>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 20px 14px;flex-shrink:0;">
+            <span style="font-size:10px;font-weight:600;color:#bdb6ac;text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;">変数</span>
+            <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#5c5650;background:#f4f1ec;border:1px solid #e4dfd7;padding:3px 10px 3px 8px;border-radius:12px;">
+              <code style="font-family:'DM Mono',monospace;font-size:10px;color:#a07850;background:rgba(160,120,80,.1);padding:1px 5px;border-radius:3px;">{{content}}</code> 本文を挿入
+            </span>
+            <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#5c5650;background:#f4f1ec;border:1px solid #e4dfd7;padding:3px 10px 3px 8px;border-radius:12px;">
+              <code style="font-family:'DM Mono',monospace;font-size:10px;color:#a07850;background:rgba(160,120,80,.1);padding:1px 5px;border-radius:3px;">{{today}}</code> 今日の日付
+            </span>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ GITHUB MODAL ═══ -->
+<div id="github-modal" class="modal-wrap hidden">
+  <div class="modal-bg" id="github-bg"></div>
+  <div id="gh-box" class="modal-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid #e4dfd7;background:#f4f1ec;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="#6b5e4c">
+          <path d="M8 1C4.134 1 1 4.134 1 8c0 3.09 2.004 5.716 4.784 6.641.35.064.478-.152.478-.337 0-.166-.006-.606-.01-1.19-1.947.423-2.357-.94-2.357-.94-.318-.808-.776-1.023-.776-1.023-.635-.434.048-.425.048-.425.702.049 1.071.72 1.071.72.624 1.069 1.637.76 2.036.582.063-.452.244-.76.444-.935-1.554-.177-3.188-.777-3.188-3.456 0-.764.273-1.388.72-1.877-.072-.177-.312-.888.069-1.85 0 0 .587-.188 1.923.716A6.71 6.71 0 018 4.998c.595.003 1.194.08 1.754.236 1.334-.904 1.92-.717 1.92-.717.382.963.142 1.674.07 1.85.448.49.72 1.113.72 1.878 0 2.686-1.637 3.277-3.196 3.45.251.217.475.644.475 1.298 0 .936-.009 1.692-.009 1.921 0 .187.126.405.48.337C12.998 13.714 15 11.088 15 8c0-3.866-3.134-7-7-7z"/>
+        </svg>
+        <h2 style="font-family:'Noto Serif JP',serif;font-size:15px;font-weight:300;color:#1e1a16;letter-spacing:.06em;">GitHubへ公開</h2>
+      </div>
+      <button id="github-close" class="nav-btn" style="font-size:13px;">✕</button>
+    </div>
+    <div style="padding:20px;display:flex;flex-direction:column;gap:16px;">
+      <!-- Target -->
+      <div style="background:#edeae4;border:1px solid #e4dfd7;border-radius:4px;padding:12px 14px;font-family:'DM Mono',monospace;font-size:11px;color:#5c5650;line-height:1.8;">
+        <div style="font-size:10px;font-weight:600;color:#958e85;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;font-family:'Noto Sans JP',sans-serif;">プッシュ先</div>
+        <div style="color:#a07850;">kouta0000/kouta0000.github.io</div>
+        <div style="color:#bdb6ac;">└ src/data/blog/<span id="gh-target-filename" style="color:#5c5650;">untitled.md</span></div>
+      </div>
+      <!-- PAT -->
+      <div>
+        <label style="display:flex;align-items:center;justify-content:space-between;font-size:10px;font-weight:600;color:#958e85;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;">
+          Personal Access Token
+          <a href="https://github.com/settings/tokens/new?scopes=repo&description=minima-editor" target="_blank" rel="noopener" style="font-size:11px;color:#6b5e4c;text-decoration:none;font-weight:400;text-transform:none;letter-spacing:0;">発行する →</a>
+        </label>
+        <input id="gh-pat" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+          class="field" style="font-family:'DM Mono',monospace;font-size:12px;" autocomplete="off" spellcheck="false">
+        <label style="display:flex;align-items:center;gap:8px;margin-top:8px;cursor:pointer;">
+          <input type="checkbox" id="gh-pat-save" style="width:13px;height:13px;accent-color:#6b5e4c;cursor:pointer;">
+          <span style="font-size:11px;color:#958e85;">このブラウザに保存する（個人デバイス専用）</span>
+        </label>
+      </div>
+      <!-- Commit message -->
+      <div>
+        <label style="display:block;font-size:10px;font-weight:600;color:#958e85;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;">コミットメッセージ</label>
+        <input id="gh-commit-msg" type="text" class="field" placeholder="docs: update post">
+      </div>
+      <!-- Branch -->
+      <div>
+        <label style="display:block;font-size:10px;font-weight:600;color:#958e85;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;">ブランチ</label>
+        <input id="gh-branch" type="text" value="main" class="field" style="font-family:'DM Mono',monospace;font-size:12px;">
+      </div>
+      <!-- Status -->
+      <div id="gh-status" style="display:none;font-size:11px;padding:10px 12px;border-radius:4px;border:1px solid #d8d2c8;line-height:1.6;"></div>
+      <!-- Actions -->
+      <div style="display:flex;gap:10px;align-items:center;">
+        <button id="gh-push-btn" class="act-btn" style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1C4.134 1 1 4.134 1 8c0 3.09 2.004 5.716 4.784 6.641.35.064.478-.152.478-.337 0-.166-.006-.606-.01-1.19-1.947.423-2.357-.94-2.357-.94-.318-.808-.776-1.023-.776-1.023-.635-.434.048-.425.048-.425.702.049 1.071.72 1.071.72.624 1.069 1.637.76 2.036.582.063-.452.244-.76.444-.935-1.554-.177-3.188-.777-3.188-3.456 0-.764.273-1.388.72-1.877-.072-.177-.312-.888.069-1.85 0 0 .587-.188 1.923.716A6.71 6.71 0 018 4.998c.595.003 1.194.08 1.754.236 1.334-.904 1.92-.717 1.92-.717.382.963.142 1.674.07 1.85.448.49.72 1.113.72 1.878 0 2.686-1.637 3.277-3.196 3.45.251.217.475.644.475 1.298 0 .936-.009 1.692-.009 1.921 0 .187.126.405.48.337C12.998 13.714 15 11.088 15 8c0-3.866-3.134-7-7-7z"/></svg>
+          プッシュする
+        </button>
+        <a id="gh-view-link" href="#" target="_blank" rel="noopener" class="act-btn ghost" style="display:none;text-align:center;text-decoration:none;">GitHub →</a>
+      </div>
+      <p style="font-size:10px;color:#bdb6ac;line-height:1.7;border-top:1px solid #e4dfd7;padding-top:12px;">
+        ⚠️ PATには <code style="font-family:'DM Mono',monospace;background:#edeae4;padding:1px 5px;border-radius:3px;color:#a07850;">repo</code> スコープが必要です。プッシュ後 Netlify が自動デプロイします。
+      </p>
+    </div>
+  </div>
+</div>
+
+
+<!-- TOAST -->
+<div id="toast"></div>
+<input type="file" id="file-input" accept=".md,.txt" style="display:none;">
+
+<script>
+/* ═══════════════════════════════════════════════════
+   STORAGE
+   自動保存先: ブラウザ内 IndexedDB（minima_db）
+   ⌘S 手動保存: File System Access API (Chrome/Edge) または ダウンロード
+   設定・テンプレート: localStorage
+═══════════════════════════════════════════════════ */
+const DB_NAME='minima_db', DB_VER=1, STORE='docs';
+let _db=null;
+
+function openDB(){
+  if(_db) return Promise.resolve(_db);
+  return new Promise((res,rej)=>{
+    const r=indexedDB.open(DB_NAME,DB_VER);
+    r.onupgradeneeded=e=>{
+      const db=e.target.result;
+      if(!db.objectStoreNames.contains(STORE)){
+        const s=db.createObjectStore(STORE,{keyPath:'id'});
+        s.createIndex('updatedAt','updatedAt',{unique:false});
+        s.createIndex('createdAt','createdAt',{unique:false});
+        s.createIndex('name','name',{unique:false});
+      }
+    };
+    r.onsuccess=e=>{_db=e.target.result;res(_db);};
+    r.onerror=e=>rej(e.target.error);
+  });
+}
+async function idbGetAll(){
+  try{const db=await openDB(),tx=db.transaction(STORE,'readonly'),s=tx.objectStore(STORE);
+    return new Promise((r,j)=>{const q=s.getAll();q.onsuccess=()=>r(q.result||[]);q.onerror=()=>j(q.error);});}
+  catch{return lsDocs();}
+}
+async function idbPut(doc){
+  try{const db=await openDB(),tx=db.transaction(STORE,'readwrite'),s=tx.objectStore(STORE);
+    return new Promise((r,j)=>{const q=s.put(doc);q.onsuccess=()=>r(doc);q.onerror=()=>j(q.error);});}
+  catch{const a=lsDocs().filter(d=>d.id!==doc.id);lsSaveDocs([...a,doc]);return doc;}
+}
+async function idbDel(id){
+  try{const db=await openDB(),tx=db.transaction(STORE,'readwrite'),s=tx.objectStore(STORE);
+    return new Promise((r,j)=>{const q=s.delete(id);q.onsuccess=()=>r();q.onerror=()=>j(q.error);});}
+  catch{lsSaveDocs(lsDocs().filter(d=>d.id!==id));}
+}
+async function idbEstimate(){
+  if(navigator.storage&&navigator.storage.estimate){const{usage,quota}=await navigator.storage.estimate();return{usage,quota};}
+  return{usage:0,quota:0};
+}
+
+/* LS fallback & settings */
+function lsDocs(){try{return JSON.parse(localStorage.getItem('minima_docs')||'[]');}catch{return[];}}
+function lsSaveDocs(a){try{localStorage.setItem('minima_docs',JSON.stringify(a));}catch{}}
+function lsCurGet(){return localStorage.getItem('minima_cur')||null;}
+function lsCurSet(id){localStorage.setItem('minima_cur',id);}
+function fmLoad(){try{return JSON.parse(localStorage.getItem('minima_fm')||'null')||{enabled:false,fields:[{key:'title',value:'',enabled:true},{key:'date',value:'{{today}}',enabled:true},{key:'author',value:'',enabled:false},{key:'tags',value:'',enabled:false},{key:'draft',value:'true',enabled:false}]};}catch{return{enabled:false,fields:[]};}}
+function fmSave(o){try{localStorage.setItem('minima_fm',JSON.stringify(o));}catch{}}
+function tmLoad(){try{return JSON.parse(localStorage.getItem('minima_tpl')||'null')||defaultTpls();}catch{return defaultTpls();}}
+function tmSave(a){try{localStorage.setItem('minima_tpl',JSON.stringify(a));}catch{}}
+function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
+
+function defaultTpls(){return[
+  {id:'tpl-blog',name:'ブログ記事',icon:'✍️',ext:'md',content:'# タイトル\n\n## はじめに\n\nここに導入文を書きます。\n\n## 本文\n\n## まとめ\n'},
+  {id:'tpl-note',name:'メモ',icon:'📝',ext:'md',content:'# メモ\n\n**日時**: {{today}}\n\n---\n\n'},
+  {id:'tpl-blank',name:'空白',icon:'◻️',ext:'md',content:''},
+];}
+
+async function docCreate(name,content,ext='md'){
+  const doc={id:genId(),name,ext,content,createdAt:Date.now(),updatedAt:Date.now()};
+  await idbPut(doc); lsCurSet(doc.id); return doc;
+}
+async function docUpdate(id,patch){
+  const all=await idbGetAll(), doc=all.find(d=>d.id===id); if(!doc)return null;
+  const upd={...doc,...patch,updatedAt:Date.now()}; await idbPut(upd); return upd;
+}
+async function docDelete(id){await idbDel(id);}
+async function docGet(id){const all=await idbGetAll();return all.find(d=>d.id===id)||null;}
+async function docAll(sort='updated'){
+  const all=await idbGetAll();
+  if(sort==='name') return all.sort((a,b)=>a.name.localeCompare(b.name,'ja'));
+  if(sort==='created') return all.sort((a,b)=>b.createdAt-a.createdAt);
+  return all.sort((a,b)=>b.updatedAt-a.updatedAt);
+}
+
+/* FS API */
+const FS_SUPPORTED=typeof window.showSaveFilePicker==='function';
+let fsHandle=null;
+async function saveViaFS(content,name,ext){
+  try{
+    if(!fsHandle) fsHandle=await window.showSaveFilePicker({suggestedName:name+'.'+ext,types:[{description:ext==='md'?'Markdown':'Text',accept:ext==='md'?{'text/markdown':['.md']}:{'text/plain':['.txt']}}]});
+    const w=await fsHandle.createWritable(); await w.write(content); await w.close();
+    return{ok:true,fileName:fsHandle.name};
+  }catch(e){if(e.name==='AbortError')return{ok:false,aborted:true};return{ok:false,error:e};}
+}
+async function openViaFS(){
+  try{
+    const[h]=await window.showOpenFilePicker({types:[{description:'テキストファイル',accept:{'text/*':['.md','.txt']}}],multiple:false});
+    const file=await h.getFile(), text=await file.text(); fsHandle=h;
+    return{ok:true,name:file.name,text};
+  }catch(e){if(e.name==='AbortError')return{ok:false,aborted:true};return{ok:false,error:e};}
+}
+function dlFile(content,name,ext){
+  const blob=new Blob([content],{type:(ext==='md'?'text/markdown':'text/plain')+';charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=Object.assign(document.createElement('a'),{href:url,download:name+'.'+ext});
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+/* ═══ Markdown renderer ═══ */
+function renderMd(src){
+  const E=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  let clean=src.replace(/^---\n[\s\S]*?\n---\n?/,'');
+  const blocks=[],inlines=[];
+  let t=clean
+    .replace(/```([\w]*)\n?([\s\S]*?)```/g,(_,l,c)=>{blocks.push(`<pre><code>${E(c.trim())}</code></pre>`);return`\x02B${blocks.length-1}\x03`;})
+    .replace(/`([^`\n]+)`/g,(_,c)=>{inlines.push(`<code>${E(c)}</code>`);return`\x02I${inlines.length-1}\x03`;});
+  t=E(t);
+  // tables
+  const trows=t.split('\n');const tout=[];let i=0;
+  while(i<trows.length){
+    const row=trows[i];
+    if(/^\|.+\|/.test(row)&&i+1<trows.length&&/^\|[\s\-|:]+\|/.test(trows[i+1])){
+      const hd=row.split('|').filter((_,j,a)=>j>0&&j<a.length-1).map(h=>h.trim());
+      let html='<table><thead><tr>'+hd.map(h=>`<th>${h}</th>`).join('')+'</tr></thead><tbody>';
+      i+=2;
+      while(i<trows.length&&/^\|.+\|/.test(trows[i])){
+        const cs=trows[i].split('|').filter((_,j,a)=>j>0&&j<a.length-1).map(c=>c.trim());
+        html+='<tr>'+cs.map(c=>`<td>${c}</td>`).join('')+'</tr>';i++;
+      }
+      tout.push(html+'</tbody></table>');
+    }else{tout.push(row);i++;}
+  }
+  t=tout.join('\n');
+  t=t
+    .replace(/^#{6} (.+)$/gm,'<h6>$1</h6>').replace(/^#{5} (.+)$/gm,'<h5>$1</h5>')
+    .replace(/^#{4} (.+)$/gm,'<h4>$1</h4>').replace(/^#{3} (.+)$/gm,'<h3>$1</h3>')
+    .replace(/^#{2} (.+)$/gm,'<h2>$1</h2>').replace(/^#{1} (.+)$/gm,'<h1>$1</h1>')
+    .replace(/^[-*_]{3,}\s*$/gm,'<hr>').replace(/^&gt;\s?(.+)$/gm,'<blockquote>$1</blockquote>')
+    .replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*([^*\n]+)\*/g,'<em>$1</em>')
+    .replace(/__(.+?)__/g,'<strong>$1</strong>').replace(/_([^_\n]+)_/g,'<em>$1</em>')
+    .replace(/~~(.+?)~~/g,'<del>$1</del>')
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g,'<img src="$2" alt="$1" loading="lazy">')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+  const rows=t.split('\n'),out=[];let ul=false,ol=false;
+  for(const row of rows){
+    if(/^\s*[-*+] /.test(row)){if(!ul){if(ol){out.push('</ol>');ol=false;}out.push('<ul>');ul=true;}out.push('<li>'+row.replace(/^\s*[-*+] /,'')+'</li>');}
+    else if(/^\s*\d+\. /.test(row)){if(!ol){if(ul){out.push('</ul>');ul=false;}out.push('<ol>');ol=true;}out.push('<li>'+row.replace(/^\s*\d+\. /,'')+'</li>');}
+    else{if(ul){out.push('</ul>');ul=false;}if(ol){out.push('</ol>');ol=false;}out.push(row);}
+  }
+  if(ul)out.push('</ul>');if(ol)out.push('</ol>');t=out.join('\n');
+  t=t.split(/\n{2,}/).map(b=>{b=b.trim();if(!b)return'';
+    if(/^<(h[1-6]|ul|ol|pre|blockquote|hr|div|table)/.test(b)||/^\x02/.test(b))return b;
+    return'<p>'+b.replace(/\n/g,'<br>')+'</p>';}).join('\n');
+  t=t.replace(/\x02B(\d+)\x03/g,(_,i)=>blocks[+i]);
+  t=t.replace(/\x02I(\d+)\x03/g,(_,i)=>inlines[+i]);
+  return t;
+}
+
+/* ═══ DOM ═══ */
+const $=id=>document.getElementById(id);
+const editor=$('editor'),filenameEl=$('filename'),fileExtEl=$('file-ext'),dotUnsaved=$('dot-unsaved');
+const stChars=$('st-chars'),stLines=$('st-lines'),stMsg=$('st-msg');
+const previewWrap=$('preview-wrap'),previewBody=$('preview-body');
+const sidebar=$('sidebar'),sbOverlay=$('sb-overlay'),fileList=$('file-list'),sbEmpty=$('sb-empty');
+const toastEl=$('toast'),fileInput=$('file-input'),autosaveBadge=$('autosave-badge');
+const S={id:null,ext:'md',modified:false,preview:false,focus:false,sort:'updated'};
+
+/* ═══ Toast / Status ═══ */
+let toastT;
+function toast(msg,ms=2200){clearTimeout(toastT);toastEl.textContent=msg;toastEl.classList.add('show');toastT=setTimeout(()=>toastEl.classList.remove('show'),ms);}
+let asBadgeT;
+function showAutosaveBadge(){clearTimeout(asBadgeT);autosaveBadge.style.opacity='1';asBadgeT=setTimeout(()=>autosaveBadge.style.opacity='0',2200);}
+function setModified(v){S.modified=v;dotUnsaved.style.opacity=v?'1':'0';}
+function updateStats(){const v=editor.value;stChars.textContent=v.length.toLocaleString('ja')+' 文字';stLines.textContent=(v===''?1:v.split('\n').length).toLocaleString('ja')+' 行';}
+
+/* ═══ Line numbers ═══ */
+function updateLineNumbers(){
+  const lines=editor.value.split('\n').length;
+  $('editor-line-numbers').textContent=Array.from({length:lines},(_,i)=>i+1).join('\n');
+  $('editor-word-count').textContent=editor.value.length.toLocaleString('ja')+' 文字';
+}
+editor.addEventListener('scroll',()=>$('editor-line-numbers').scrollTop=editor.scrollTop);
+
+/* ═══ Storage indicator ═══ */
+async function updateStorage(){
+  const{usage,quota}=await idbEstimate();if(!quota)return;
+  const pct=Math.min(100,Math.round(usage/quota*100));
+  $('storage-bar').style.width=pct+'%';
+  const kb=Math.round(usage/1024);
+  $('storage-text').textContent=kb>1024?(kb/1024).toFixed(1)+'MB':kb+'KB';
+  $('storage-bar').style.background=pct>80?'#9a5555':pct>60?'#a07850':'#6b5e4c';
+}
+
+/* ═══ Auto-save (IndexedDB, 0.8s debounce) ═══ */
+let asTimer;
+function scheduleAutoSave(){
+  clearTimeout(asTimer);
+  asTimer=setTimeout(async()=>{
+    const name=filenameEl.value.trim()||'untitled',content=editor.value;
+    if(!S.id){const rec=await docCreate(name,content,S.ext);S.id=rec.id;lsCurSet(S.id);}
+    else await docUpdate(S.id,{name,content,ext:S.ext});
+    setModified(false);
+    stMsg.textContent='自動保存';showAutosaveBadge();
+    setTimeout(()=>{stMsg.textContent='';},1800);
+    renderFileList();updateStorage();
+  },800);
+}
+
+/* ═══ Manual save (⌘S → File System API or download) ═══ */
+async function manualSave(){
+  clearTimeout(asTimer);
+  const name=filenameEl.value.trim()||'untitled',content=editor.value,ext=S.ext;
+  if(!S.id){const rec=await docCreate(name,content,ext);S.id=rec.id;}
+  else await docUpdate(S.id,{name,content,ext});
+  setModified(false);renderFileList();lsCurSet(S.id);updateStorage();
+  if(FS_SUPPORTED){
+    stMsg.textContent='保存中…';
+    const res=await saveViaFS(content,name,ext);
+    if(res.ok){toast('💾 '+res.fileName+' を保存しました');stMsg.textContent='保存しました';}
+    else if(!res.aborted){dlFile(content,name,ext);toast('⬇ '+name+'.'+ext+' をダウンロードしました');stMsg.textContent='ダウンロード完了';}
+    else{stMsg.textContent='';return;}
+  }else{dlFile(content,name,ext);toast('⬇ '+name+'.'+ext+' をダウンロードしました');stMsg.textContent='ダウンロード完了';}
+  setTimeout(()=>{stMsg.textContent='';},2500);
+}
+
+/* ═══ Open file ═══ */
+async function openFile(){
+  if(S.modified&&!confirm('変更が保存されていません。続けますか？'))return;
+  if(FS_SUPPORTED){
+    const res=await openViaFS();if(!res.ok)return;
+    const rawName=res.name.replace(/\.(md|txt)$/i,''),ext=res.name.endsWith('.txt')?'txt':'md';
+    const rec=await docCreate(rawName,res.text,ext);S.id=rec.id;lsCurSet(S.id);
+    loadIntoEditor(rec);renderFileList();toast('📄 '+res.name+' を開きました');
+  }else{fileInput.click();}
+}
+fileInput.addEventListener('change',async()=>{
+  const file=fileInput.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=async e=>{
+    const rawName=file.name.replace(/\.(md|txt)$/i,''),ext=file.name.endsWith('.txt')?'txt':'md';
+    const rec=await docCreate(rawName,e.target.result,ext);S.id=rec.id;lsCurSet(S.id);
+    loadIntoEditor(rec);renderFileList();toast('📄 '+file.name+' を開きました');
+  };
+  reader.readAsText(file,'UTF-8');fileInput.value='';
+});
+
+/* ═══ Load into editor ═══ */
+function loadIntoEditor(rec){
+  fsHandle=null;S.id=rec.id;S.ext=rec.ext||'md';
+  editor.value=rec.content||'';filenameEl.value=rec.name||'untitled';
+  fileExtEl.textContent='.'+S.ext;
+  $('editor-chrome-filename').textContent=(rec.name||'untitled')+'.'+S.ext;
+  setModified(false);setFmt(S.ext,false);updateStats();updateLineNumbers();resizeFn();
+  if(S.preview)renderPreview();if(rec.id)lsCurSet(rec.id);
+}
+
+/* ═══ New file ═══ */
+function newFile(){if(S.modified&&!confirm('変更が保存されていません。新規作成しますか？'))return;openNewFileModal();}
+async function createFileFromTemplate(tpl){
+  clearTimeout(asTimer);fsHandle=null;
+  const fm=fmLoad(),fmStr=buildFrontmatter(fm),content=fmStr+(tpl.content||'');
+  const ext=tpl.ext||S.ext,name=tpl.id==='tpl-blank'?'untitled':tpl.name;
+  const rec=await docCreate(name,content,ext);
+  loadIntoEditor(rec);renderFileList();closeSidebar();closeNewFileModal();editor.focus();
+  editor.setSelectionRange(fmStr.length,fmStr.length);
+}
+
+/* ═══ Frontmatter ═══ */
+function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function buildFrontmatter(fm){
+  if(!fm.enabled)return'';
+  const active=fm.fields.filter(f=>f.enabled&&f.key.trim());if(!active.length)return'';
+  const lines=active.map(f=>{let v=f.value.replace('{{today}}',todayStr());
+    if(f.key==='tags'&&v.includes(','))return f.key+':\n'+v.split(',').map(s=>'  - '+s.trim()).join('\n');
+    return f.key+': '+v;});
+  return'---\n'+lines.join('\n')+'\n---\n\n';
+}
+
+/* ═══ Format picker ═══ */
+function setFmt(ext,updateRecord=true){
+  S.ext=ext;fileExtEl.textContent='.'+ext;
+  document.querySelectorAll('.fmt-btn').forEach(b=>b.classList.toggle('active',b.dataset.fmt===ext));
+  if(updateRecord&&S.id)docUpdate(S.id,{ext});
+}
+document.querySelectorAll('.fmt-btn').forEach(b=>b.addEventListener('click',()=>{setFmt(b.dataset.fmt);fsHandle=null;}));
+
+/* ═══ Sidebar ═══ */
+function openSidebar(){renderFileList();sidebar.classList.add('open');sbOverlay.classList.add('active');updateStorage();}
+function closeSidebar(){sidebar.classList.remove('open');sbOverlay.classList.remove('active');}
+function fmtDate(ts){const diff=Date.now()-ts;if(diff<60000)return'たった今';if(diff<3600000)return Math.floor(diff/60000)+'分前';if(diff<86400000)return Math.floor(diff/3600000)+'時間前';const d=new Date(ts);return(d.getMonth()+1)+'/'+d.getDate();}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+async function renderFileList(){
+  const q=($('sb-search').value||'').toLowerCase();
+  let files=await docAll(S.sort);
+  if(q)files=files.filter(f=>f.name.toLowerCase().includes(q)||(f.content||'').toLowerCase().includes(q));
+  fileList.innerHTML='';
+  if(!files.length){sbEmpty.style.display='flex';return;}
+  sbEmpty.style.display='none';
+  files.forEach(f=>{
+    const el=document.createElement('div');
+    el.className='fi'+(f.id===S.id?' active':'');
+    const preview=(f.content||'').replace(/^---[\s\S]*?---\n?/,'').split('\n')[0].replace(/^#+\s*/,'').slice(0,36)||'(空)';
+    el.innerHTML=`<span style="font-size:12px;opacity:.35;flex-shrink:0;">◇</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;color:#1e1a16;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(f.name)}<span style="opacity:.45">.${esc(f.ext||'md')}</span></div>
+        <div style="font-size:10px;color:#bdb6ac;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'DM Mono',monospace;">${fmtDate(f.updatedAt)} · ${esc(preview)}</div>
+      </div>
+      <button class="fi-del" data-id="${f.id}" title="削除">✕</button>`;
+    el.addEventListener('click',async e=>{
+      if(e.target.classList.contains('fi-del'))return;
+      if(S.modified&&!confirm('変更が保存されていません。切り替えますか？'))return;
+      clearTimeout(asTimer);fsHandle=null;
+      const rec=await docGet(f.id);if(rec){loadIntoEditor(rec);renderFileList();closeSidebar();}
+    });
+    el.querySelector('.fi-del').addEventListener('click',async e=>{
+      e.stopPropagation();if(!confirm(`「${f.name}」を完全に削除しますか？`))return;
+      const id=e.target.dataset.id;await docDelete(id);
+      if(id===S.id){clearTimeout(asTimer);fsHandle=null;
+        const rem=await docAll(S.sort);
+        if(rem.length)loadIntoEditor(rem[0]);else{const r=await docCreate('untitled','');loadIntoEditor(r);}
+      }
+      renderFileList();toast('削除しました');updateStorage();
+    });
+    fileList.appendChild(el);
+  });
+}
+
+$('sb-search').addEventListener('input',()=>{$('sb-search-clear').style.display=$('sb-search').value?'block':'none';renderFileList();});
+$('sb-search-clear').addEventListener('click',()=>{$('sb-search').value='';$('sb-search-clear').style.display='none';renderFileList();});
+$('sort-select').addEventListener('change',e=>{S.sort=e.target.value;renderFileList();});
+
+/* ═══ Preview ═══ */
+function renderPreview(){previewBody.innerHTML=renderMd(editor.value);}
+function togglePreview(){
+  S.preview=!S.preview;$('btn-preview').classList.toggle('active',S.preview);
+  if(S.preview){renderPreview();previewWrap.classList.add('open');}
+  else{previewWrap.classList.remove('open');editor.focus();}
+}
+$('preview-close').addEventListener('click',()=>{S.preview=false;$('btn-preview').classList.remove('active');previewWrap.classList.remove('open');editor.focus();});
+
+/* ═══ Focus mode ═══ */
+function toggleFocus(){S.focus=!S.focus;document.body.classList.toggle('focus',S.focus);$('btn-focus').classList.toggle('active',S.focus);}
+
+/* ═══ Filename auto-width ═══ */
+function resizeFn(){
+  const sp=Object.assign(document.createElement('span'),{style:'position:absolute;visibility:hidden;font-family:"Noto Sans JP",sans-serif;font-size:14px;white-space:pre'});
+  sp.textContent=filenameEl.value||'untitled';document.body.appendChild(sp);
+  filenameEl.style.width=Math.min(200,Math.max(50,sp.offsetWidth+10))+'px';
+  document.body.removeChild(sp);
+}
+
+/* ═══ Share modal ═══ */
+function openShare(){
+  $('share-modal').classList.remove('hidden');switchTab('qr');
+  $('mail-subject').value=(filenameEl.value.trim()||'untitled')+'.'+S.ext+' の共有';
+  $('copy-preview').textContent=editor.value.slice(0,500)+(editor.value.length>500?'\n…':'');
+  $('qr-canvas').style.display='none';$('qr-placeholder').style.display='block';
+  $('qr-note').textContent='';$('btn-qr-dl').style.display='none';$('mail-msg').textContent='';
+}
+function closeShare(){$('share-modal').classList.add('hidden');}
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));
+  document.querySelectorAll('.tab-body').forEach(p=>p.classList.toggle('active',p.id==='tb-'+id));
+}
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+
+function generateQR(){
+  const canvas=$('qr-canvas'),note=$('qr-note'),ph=$('qr-placeholder');if(!canvas)return;
+  const text=editor.value.trim();if(!text){note.textContent='テキストを入力してください';return;}
+  if(typeof qrcode==='undefined'){note.textContent='QRライブラリを読み込み中…';loadQRLib(generateQR);return;}
+  try{
+    const qr=qrcode(0,'L');qr.addData(text,'Byte');qr.make();
+    ph.style.display='none';canvas.style.display='block';
+    const mc=qr.getModuleCount(),mg=2,cs=Math.floor(210/(mc+mg*2))||2;
+    canvas.width=canvas.height=(mc+mg*2)*cs;
+    const ctx=canvas.getContext('2d');ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#2a2520';
+    for(let r=0;r<mc;r++)for(let c=0;c<mc;c++)if(qr.isDark(r,c))ctx.fillRect((c+mg)*cs,(r+mg)*cs,cs,cs);
+    note.textContent=`${text.length} 文字のQRを生成しました`;$('btn-qr-dl').style.display='inline-flex';
+  }catch(e){note.textContent='生成失敗: '+(e.message||'');canvas.style.display='none';ph.style.display='block';}
+}
+function loadQRLib(cb){
+  const s=document.createElement('script');
+  s.src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+  s.onload=cb;document.head.appendChild(s);
+}
+function downloadQR(){const c=$('qr-canvas');if(c.style.display==='none')return;Object.assign(document.createElement('a'),{download:(filenameEl.value.trim()||'minima')+'_qr.png',href:c.toDataURL('image/png')}).click();}
+function sendMail(){
+  const to=$('mail-to').value.trim(),subject=$('mail-subject').value.trim(),memo=$('mail-memo').value.trim(),msgEl=$('mail-msg');
+  if(!to){msgEl.textContent='送信先を入力してください';return;}
+  const body=(memo?memo+'\n\n---\n\n':'')+editor.value;
+  const link=`mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  if(link.length>8000){msgEl.textContent='テキストが長すぎます。保存してから添付してください。';return;}
+  window.location.href=link;msgEl.textContent='メールアプリを起動しています…';setTimeout(()=>{msgEl.textContent='';},3000);
+}
+function copyText(){
+  const btn=$('btn-copy'),t=editor.value;
+  const done=()=>{btn.textContent='✓ コピーしました';toast('コピーしました');setTimeout(()=>{btn.textContent='コピーする';},2000);};
+  if(navigator.clipboard)navigator.clipboard.writeText(t).then(done).catch(()=>fallbackCopy(t,done));else fallbackCopy(t,done);
+}
+function fallbackCopy(text,cb){const ta=Object.assign(document.createElement('textarea'),{value:text,style:'position:fixed;opacity:0'});document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);cb();}
+
+/* ═══ New file modal ═══ */
+function openNewFileModal(){$('new-file-modal').classList.remove('hidden');renderNewFileModal();}
+function closeNewFileModal(){$('new-file-modal').classList.add('hidden');}
+function renderNewFileModal(){
+  const templates=tmLoad(),fm=fmLoad();
+  const grid=$('nf-tpl-grid');grid.innerHTML='';
+  templates.forEach(tpl=>{
+    const btn=document.createElement('button');btn.className='nf-tpl-btn';
+    btn.innerHTML=`<span class="nf-tpl-icon">${esc(tpl.icon||'📄')}</span><span class="nf-tpl-name">${esc(tpl.name)}</span>`;
+    btn.addEventListener('click',()=>createFileFromTemplate(tpl));grid.appendChild(btn);
+  });
+  const toggle=$('nf-fm-toggle');toggle.checked=fm.enabled;
+  const body=$('nf-fm-body');
+  if(fm.enabled){body.style.maxHeight='400px';body.style.opacity='1';body.classList.remove('collapsed');}
+  else{body.style.maxHeight='0';body.style.opacity='0';body.classList.add('collapsed');}
+  renderFmFields(fm);
+}
+function renderFmFields(fm){
+  const container=$('nf-fm-fields');container.innerHTML='';
+  fm.fields.forEach((field,i)=>{
+    const row=document.createElement('div');row.className='fm-row';
+    row.innerHTML=`<input type="checkbox" class="fm-check" data-idx="${i}" ${field.enabled?'checked':''}><input class="fm-key" type="text" value="${esc(field.key)}" data-idx="${i}" placeholder="key" maxlength="32"><span class="fm-sep">:</span><input type="text" value="${esc(field.value)}" data-idx="${i}" placeholder="value" style="flex:1;box-sizing:border-box;padding:7px 10px;background:#faf8f5;border:1px solid #d8d2c8;border-radius:4px;color:#1e1a16;font-family:'DM Mono',monospace;font-size:12px;outline:none;"><button class="fm-del" data-idx="${i}">✕</button>`;
+    container.appendChild(row);
+  });
+  container.querySelectorAll('.fm-check').forEach(el=>el.addEventListener('change',()=>{const fm2=fmLoad();fm2.fields[+el.dataset.idx].enabled=el.checked;fmSave(fm2);}));
+  container.querySelectorAll('.fm-key').forEach(el=>el.addEventListener('input',()=>{const fm2=fmLoad();fm2.fields[+el.dataset.idx].key=el.value;fmSave(fm2);}));
+  container.querySelectorAll('[data-idx]:not(.fm-check):not(.fm-key):not(.fm-del)').forEach(el=>el.addEventListener('input',()=>{const fm2=fmLoad();fm2.fields[+el.dataset.idx].value=el.value;fmSave(fm2);}));
+  container.querySelectorAll('.fm-del').forEach(el=>el.addEventListener('click',()=>{const fm2=fmLoad();fm2.fields.splice(+el.dataset.idx,1);fmSave(fm2);renderFmFields(fm2);}));
+}
+$('nf-fm-toggle').addEventListener('change',e=>{
+  const fm=fmLoad();fm.enabled=e.target.checked;fmSave(fm);
+  const body=$('nf-fm-body');
+  if(fm.enabled){body.style.maxHeight='400px';body.style.opacity='1';body.classList.remove('collapsed');}
+  else{body.style.maxHeight='0';body.style.opacity='0';body.classList.add('collapsed');}
+});
+$('nf-fm-add').addEventListener('click',()=>{
+  const fm=fmLoad();fm.fields.push({key:'',value:'',enabled:true});fmSave(fm);renderFmFields(fm);
+  const keys=$('nf-fm-fields').querySelectorAll('.fm-key');if(keys.length)keys[keys.length-1].focus();
+});
+
+/* ═══ Template manager ═══ */
+function openTplManager(){$('tpl-manager-modal').classList.remove('hidden');renderTplManager();}
+function closeTplManager(){$('tpl-manager-modal').classList.add('hidden');}
+function renderTplManager(){
+  const templates=tmLoad(),list=$('tpl-list');list.innerHTML='';
+  templates.forEach(tpl=>list.appendChild(renderTplItem(tpl,false)));
+  showTplEmpty(templates.length===0);
+}
+function renderTplItem(tpl,isActive){
+  const el=document.createElement('div');el.className='tpl-sidebar-item'+(isActive?' active':'');el.dataset.id=tpl.id;
+  el.innerHTML=`<span style="font-size:11px;color:#bdb6ac;flex-shrink:0;">${esc(tpl.icon||'📄')}</span><span style="flex:1;font-size:13px;color:#1e1a16;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(tpl.name||'無題')}</span>`;
+  el.addEventListener('click',()=>selectTemplate(tpl.id));return el;
+}
+function selectTemplate(id){
+  const tpl=tmLoad().find(t=>t.id===id);if(!tpl)return;
+  document.querySelectorAll('.tpl-sidebar-item').forEach(el=>el.classList.toggle('active',el.dataset.id===id));
+  $('tpl-name-input').value=tpl.name||'';$('tpl-content-input').value=tpl.content||'';
+  $('tpl-edit-form').dataset.currentId=id;showTplEmpty(false);
+  if(window.tplEditorRefresh)window.tplEditorRefresh();
+}
+function showTplEmpty(isEmpty){
+  $('tpl-empty').style.display=isEmpty?'flex':'none';
+  $('tpl-edit-form').style.display=isEmpty?'none':'flex';
+}
+function saveTplForm(){
+  const id=$('tpl-edit-form').dataset.currentId;if(!id)return;
+  const tpls=tmLoad(),tpl=tpls.find(t=>t.id===id);if(!tpl)return;
+  tpl.name=$('tpl-name-input').value;tpl.content=$('tpl-content-input').value;tmSave(tpls);
+  const si=document.querySelector(`.tpl-sidebar-item[data-id="${id}"]`);
+  if(si){si.querySelector('span:last-child').textContent=tpl.name||'無題';si.querySelector('span:first-child').textContent=tpl.icon||'📄';}
+}
+$('tpl-add-btn').addEventListener('click',()=>{
+  const tpls=tmLoad(),t={id:genId(),name:'新しいテンプレート',icon:'📄',ext:'md',content:''};
+  tpls.push(t);tmSave(tpls);const el=renderTplItem(t,false);$('tpl-list').appendChild(el);
+  el.scrollIntoView({behavior:'smooth'});selectTemplate(t.id);
+});
+$('tpl-reset-btn').addEventListener('click',()=>{
+  const id=$('tpl-edit-form').dataset.currentId;if(!id)return;
+  if(!confirm('このテンプレートを削除しますか？'))return;
+  const tpls=tmLoad().filter(t=>t.id!==id);tmSave(tpls);
+  document.querySelector(`.tpl-sidebar-item[data-id="${id}"]`)?.remove();
+  showTplEmpty(true);$('tpl-edit-form').dataset.currentId='';toast('テンプレートを削除しました');
+});
+$('tpl-name-input').addEventListener('input',saveTplForm);
+$('tpl-content-input').addEventListener('input',saveTplForm);
+$('tpl-save-btn').addEventListener('click',()=>{saveTplForm();toast('保存しました');});
+
+/* tpl line numbers */
+(function(){
+  const ta=$('tpl-content-input'),ln=$('tpl-line-numbers');if(!ta||!ln)return;
+  function upd(){ln.textContent=Array.from({length:ta.value.split('\n').length},(_,i)=>i+1).join('\n');}
+  ta.addEventListener('input',upd);ta.addEventListener('scroll',()=>{ln.scrollTop=ta.scrollTop;});upd();
+  window.tplEditorRefresh=()=>{upd();ln.scrollTop=0;ta.scrollTop=0;};
+})();
+
+/* ═══ GitHub push ═══ */
+const GH_OWNER='kouta0000',GH_REPO='kouta0000.github.io',GH_DIR='src/data/blog',GH_API='https://api.github.com';
+function ghPatLoad(){return localStorage.getItem('minima_gh_pat')||'';}
+function ghPatSave(p){localStorage.setItem('minima_gh_pat',p);}
+function ghPatClear(){localStorage.removeItem('minima_gh_pat');}
+
+function openGithubModal(){
+  $('github-modal').classList.remove('hidden');
+  const fname=(filenameEl.value.trim()||'untitled')+'.'+S.ext;
+  $('gh-target-filename').textContent=fname;
+  const now=new Date();
+  $('gh-commit-msg').value=`docs: update ${fname} (${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')})`;
+  const saved=ghPatLoad();if(saved){$('gh-pat').value=saved;$('gh-pat-save').checked=true;}
+  ghSetStatus('','');$('gh-view-link').style.display='none';
+}
+function closeGithubModal(){$('github-modal').classList.add('hidden');}
+function ghSetStatus(type,msg){
+  const el=$('gh-status');if(!msg){el.style.display='none';return;}
+  el.style.display='block';
+  if(type==='ok')el.style.cssText='display:block;background:#f0f7f4;border:1px solid #527a64;color:#527a64;font-size:11px;padding:10px 12px;border-radius:4px;line-height:1.6;';
+  else if(type==='err')el.style.cssText='display:block;background:#fcf0f0;border:1px solid #9a5555;color:#9a5555;font-size:11px;padding:10px 12px;border-radius:4px;line-height:1.6;';
+  else el.style.cssText='display:block;background:#f4f1ec;border:1px solid #d8d2c8;color:#5c5650;font-size:11px;padding:10px 12px;border-radius:4px;line-height:1.6;';
+  el.textContent=msg;
+}
+async function ghPush(){
+  const pat=$('gh-pat').value.trim(),branch=$('gh-branch').value.trim()||'main';
+  const msg=$('gh-commit-msg').value.trim()||'docs: update via minima';
+  const fname=(filenameEl.value.trim()||'untitled')+'.'+S.ext;
+  const path=GH_DIR+'/'+fname,btn=$('gh-push-btn');
+  if(!pat){ghSetStatus('err','Personal Access Token を入力してください');return;}
+  if($('gh-pat-save').checked)ghPatSave(pat);else ghPatClear();
+  clearTimeout(asTimer);
+  if(S.id)await docUpdate(S.id,{name:filenameEl.value.trim()||'untitled',content:editor.value,ext:S.ext});
+  btn.disabled=true;btn.textContent='確認中…';ghSetStatus('info','既存ファイルを確認しています…');
+  const headers={'Authorization':'Bearer '+pat,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'};
+  try{
+    let sha=null;
+    const getRes=await fetch(`${GH_API}/repos/${GH_OWNER}/${GH_REPO}/contents/${encodeURIComponent(path)}?ref=${branch}`,{headers});
+    if(getRes.ok){const ex=await getRes.json();sha=ex.sha;}
+    else if(getRes.status===401){ghSetStatus('err','認証失敗。PATのスコープ（repo）を確認してください');btn.disabled=false;btn.textContent='プッシュする';return;}
+    else if(getRes.status!==404){const ed=await getRes.json().catch(()=>({}));ghSetStatus('err',`エラー ${getRes.status}: ${ed.message||''}`);btn.disabled=false;btn.textContent='プッシュする';return;}
+    btn.textContent='プッシュ中…';ghSetStatus('info','GitHubにプッシュしています…');
+    const content64=btoa(unescape(encodeURIComponent(editor.value)));
+    const body={message:msg,content:content64,branch};if(sha)body.sha=sha;
+    const putRes=await fetch(`${GH_API}/repos/${GH_OWNER}/${GH_REPO}/contents/${encodeURIComponent(path)}`,{method:'PUT',headers,body:JSON.stringify(body)});
+    if(putRes.ok){
+      const data=await putRes.json();
+      const fileUrl=`https://github.com/${GH_OWNER}/${GH_REPO}/blob/${branch}/${path}`;
+      ghSetStatus('ok',`✓ ${sha?'更新':'新規作成'}しました — ${fname}`);
+      const link=$('gh-view-link');link.href=fileUrl;link.style.display='inline-block';
+      toast('🚀 GitHubにプッシュしました');btn.textContent='✓ 完了';
+      setTimeout(()=>{btn.disabled=false;btn.textContent='プッシュする';},3000);
+    }else{
+      const ed=await putRes.json().catch(()=>({}));
+      let em=`プッシュ失敗 (${putRes.status})`;
+      if(ed.message)em+=': '+ed.message;
+      if(putRes.status===422)em='422: SHAが不正です。リロードして再試行してください。';
+      if(putRes.status===403)em='403: 権限不足。PATの repo スコープを確認してください。';
+      ghSetStatus('err',em);btn.disabled=false;btn.textContent='プッシュする';
+    }
+  }catch(e){ghSetStatus('err','ネットワークエラー: '+e.message);btn.disabled=false;btn.textContent='プッシュする';}
+}
+$('github-close').addEventListener('click',closeGithubModal);
+$('github-bg').addEventListener('click',closeGithubModal);
+$('gh-push-btn').addEventListener('click',ghPush);
+$('gh-pat').addEventListener('dblclick',()=>{$('gh-pat').type=$('gh-pat').type==='password'?'text':'password';});
+
+/* ═══ Editor events ═══ */
+editor.addEventListener('input',()=>{
+  updateStats();setModified(true);scheduleAutoSave();updateLineNumbers();
+  $('editor-chrome-filename').textContent=(filenameEl.value||'untitled')+'.'+S.ext;
+  if(S.preview)renderPreview();
+});
+filenameEl.addEventListener('input',()=>{
+  resizeFn();setModified(true);scheduleAutoSave();
+  $('editor-chrome-filename').textContent=(filenameEl.value||'untitled')+'.'+S.ext;
+});
+editor.addEventListener('keydown',e=>{
+  if(e.key!=='Tab')return;e.preventDefault();
+  const s=editor.selectionStart,end=editor.selectionEnd;
+  editor.value=editor.value.slice(0,s)+'  '+editor.value.slice(end);
+  editor.selectionStart=editor.selectionEnd=s+2;setModified(true);scheduleAutoSave();
+});
+document.addEventListener('keydown',e=>{
+  const m=e.metaKey||e.ctrlKey;
+  if(m&&e.key==='s'){e.preventDefault();manualSave();return;}
+  if(m&&e.key==='n'){e.preventDefault();newFile();return;}
+  if(m&&e.key==='o'){e.preventDefault();openFile();return;}
+  if(m&&e.key==='p'){e.preventDefault();togglePreview();return;}
+  if(m&&e.key==='.'){e.preventDefault();toggleFocus();return;}
+  if(e.key==='Escape'){
+    if(!$('new-file-modal').classList.contains('hidden')){closeNewFileModal();return;}
+    if(!$('tpl-manager-modal').classList.contains('hidden')){closeTplManager();return;}
+    if(!$('share-modal').classList.contains('hidden')){closeShare();return;}
+    if(!$('github-modal').classList.contains('hidden')){closeGithubModal();return;}
+    if(sidebar.classList.contains('open')){closeSidebar();return;}
+    if(S.preview){togglePreview();return;}
+    if(S.focus){toggleFocus();return;}
+  }
+});
+
+/* ═══ Button wiring ═══ */
+$('btn-sidebar').addEventListener('click',openSidebar);
+$('btn-sb-close').addEventListener('click',closeSidebar);
+sbOverlay.addEventListener('click',closeSidebar);
+$('btn-new').addEventListener('click',newFile);
+$('btn-open').addEventListener('click',openFile);
+$('btn-save').addEventListener('click',manualSave);
+$('btn-preview').addEventListener('click',togglePreview);
+$('btn-share').addEventListener('click',openShare);
+$('btn-github').addEventListener('click',openGithubModal);
+$('btn-focus').addEventListener('click',toggleFocus);
+$('share-close').addEventListener('click',closeShare);
+$('share-bg').addEventListener('click',closeShare);
+$('btn-qr-gen').addEventListener('click',generateQR);
+$('btn-qr-dl').addEventListener('click',downloadQR);
+$('btn-mail-send').addEventListener('click',sendMail);
+$('btn-copy').addEventListener('click',copyText);
+$('nf-cancel').addEventListener('click',closeNewFileModal);
+$('nf-bg').addEventListener('click',closeNewFileModal);
+$('nf-open-tpl-mgr').addEventListener('click',()=>{closeNewFileModal();setTimeout(openTplManager,300);});
+$('tpl-mgr-close').addEventListener('click',closeTplManager);
+$('tpl-mgr-bg').addEventListener('click',closeTplManager);
+
+/* ═══ INIT ═══ */
+(async function init(){
+  // 旧データマイグレーション
+  if(!localStorage.getItem('minima_migrated')){
+    const old=[
+      ...(()=>{try{return JSON.parse(localStorage.getItem('sz_files')||'[]');}catch{return[];}}()),
+      ...(()=>{try{return JSON.parse(localStorage.getItem('minima_docs')||'[]');}catch{return[];}}()),
+    ].filter(d=>d&&d.id);
+    for(const doc of old)await idbPut(doc);
+    localStorage.setItem('minima_migrated','1');
+  }
+
+  const files=await docAll('updated'),curId=lsCurGet();
+  if(!files.length){
+    const rec=await docCreate('ようこそ',`# ようこそ、minima へ
+
+執筆に集中するための Markdown エディタです。
+
+## ショートカット
+
+| キー | 操作 |
+|------|------|
+| ⌘S | 保存（Chrome/Edge: PC に直接書き込み） |
+| ⌘P | プレビュー |
+| ⌘. | フォーカスモード |
+| ⌘\\ | サイドバー |
+| ⌘N | 新規ファイル |
+
+## 自動保存のしくみ
+
+テキストはブラウザの **IndexedDB** に自動保存されます。  
+これはブラウザが管理する専用の保存領域で、localStorage より大容量です。  
+入力が止まると **0.8秒後** に自動で保存されます。  
+⌘S を押すと **PCのフォルダに直接ファイルとして書き出し**ます（Chrome/Edge）。
+
+---
+
+**さあ、書き始めましょう。**`,'md');
+    loadIntoEditor(rec);
+  }else{
+    const rec=curId?await docGet(curId):null;loadIntoEditor(rec||files[0]);
+  }
+  updateStats();updateLineNumbers();resizeFn();editor.focus();updateStorage();
+  if(!FS_SUPPORTED&&!localStorage.getItem('minima_fs_notice')){
+    localStorage.setItem('minima_fs_notice','1');
+    setTimeout(()=>toast('💡 Chrome/Edge では ⌘S でPCに直接保存できます'),1800);
+  }
+})();
+</script>
+</body>
+</html>
