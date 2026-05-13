@@ -1866,7 +1866,9 @@ document.addEventListener('keydown', e => {
     if(S.focus){toggleFocus();return;}
   }
 });
-
+/* ─── Button wiring ─── */
+console.log("ここまでJSの実行が届いているかチェック"); // ←これを追加
+// ...以下略...
 /* ─── Button wiring ─── */
 document.getElementById('btn-sidebar').addEventListener('click', openSidebar);
 document.getElementById('btn-sb-close').addEventListener('click', closeSidebar);
@@ -1891,22 +1893,49 @@ document.getElementById('tpl-mgr-close').addEventListener('click', closeTplManag
 document.getElementById('tpl-mgr-bg').addEventListener('click', closeTplManager);
 
 /* ─── INIT ─── */
+/* ─── INIT ─── */
 (async function init() {
-  // マイグレーション
-  if (!localStorage.getItem('minima_migrated')) {
-    const old = [
-      ...(()=>{try{return JSON.parse(localStorage.getItem('sz_files')||'[]');}catch{return [];}}()),
-      ...(()=>{try{return JSON.parse(localStorage.getItem('minima_docs')||'[]');}catch{return [];}}()),
-    ].filter(d => d?.id);
-    for (const doc of old) await IDB.put(doc);
-    localStorage.setItem('minima_migrated','1');
-  }
+  try {
+    // 1. マイグレーション処理
+    if (!localStorage.getItem('minima_migrated')) {
+      // 構文エラーを避けるため、即時関数ではなく安全にデータを取得する
+      let szFiles = [];
+      let minimaDocs = [];
+      
+      try {
+        szFiles = JSON.parse(localStorage.getItem('sz_files') || '[]');
+      } catch (e) {
+        szFiles = [];
+      }
+      
+      try {
+        minimaDocs = JSON.parse(localStorage.getItem('minima_docs') || '[]');
+      } catch (e) {
+        minimaDocs = [];
+      }
 
-  const files = await docAll('updated');
-  const curId = lsCurGet();
+      // 取得した配列を安全にマージしてフィルタリング
+      const old = [...szFiles, ...minimaDocs].filter(d => d?.id);
 
-  if (!files.length) {
-    const rec = await docCreate('ようこそ', `# ようこそ、minima へ
+      // IDB が存在し、かつ有効な関数を持っているか安全にチェック
+      if (typeof IDB !== 'undefined' && typeof IDB.put === 'function') {
+        await Promise.all(old.map(doc => IDB.put(doc)));
+      } else {
+        console.warn("minima: IDB library is not ready or missing during migration.");
+      }
+      localStorage.setItem('minima_migrated', '1');
+    }
+
+    // 2. データベース関数（docAll）の存在チェック
+    if (typeof docAll !== 'function' || typeof docCreate !== 'function' || typeof docGet !== 'function') {
+      throw new Error("Required database functions (docAll, docCreate, docGet) are not defined.");
+    }
+
+    const files = await docAll('updated');
+    const curId = typeof lsCurGet === 'function' ? lsCurGet() : null;
+
+    if (!files.length) {
+      const rec = await docCreate('ようこそ', `# ようこそ、minima へ
 
 執筆に集中するための Markdown エディタです。
 
@@ -1928,17 +1957,30 @@ document.getElementById('tpl-mgr-bg').addEventListener('click', closeTplManager)
 ---
 
 **さあ、書き始めましょう。**`, 'md');
-    loadIntoEditor(rec);
-  } else {
-    const rec = curId ? await docGet(curId) : null;
-    loadIntoEditor(rec || files[0]);
-  }
+      if (typeof loadIntoEditor === 'function') loadIntoEditor(rec);
+    } else {
+      const rec = curId ? await docGet(curId) : null;
+      if (typeof loadIntoEditor === 'function') loadIntoEditor(rec || files[0]);
+    }
 
-  updateStats(); updateLineNums(); resizeFn(); editor.focus(); updateStorage();
+    // 3. UI初期化関数の安全な実行
+    if (typeof updateStats === 'function') updateStats();
+    if (typeof updateLineNums === 'function') updateLineNums();
+    if (typeof resizeFn === 'function') resizeFn();
+    if (editor && typeof editor.focus === 'function') editor.focus();
+    if (typeof updateStorage === 'function') updateStorage();
 
-  if (!FS && !localStorage.getItem('minima_fs_notice')) {
-    localStorage.setItem('minima_fs_notice','1');
-    setTimeout(() => toast('💡 Chrome/Edge では ⌘S で PC に直接保存できます'), 1800);
+    // 4. File System Access API の案内通知
+    const isFsUndefined = typeof FS === 'undefined' || !FS;
+    if (isFsUndefined && !localStorage.getItem('minima_fs_notice')) {
+      localStorage.setItem('minima_fs_notice', '1');
+      if (typeof toast === 'function') {
+        setTimeout(() => toast('💡 Chrome/Edge では ⌘S で PC に直接保存できます'), 1800);
+      }
+    }
+
+  } catch (error) {
+    console.error("minima: Initialization failed:", error);
   }
 })();
 </script>
