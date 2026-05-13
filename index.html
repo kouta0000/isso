@@ -1567,7 +1567,7 @@ function setFmt(ext, save=true) {
 document.querySelectorAll('.fmt-btn').forEach(b => b.addEventListener('click', () => { setFmt(b.dataset.fmt); fsHandle=null; }));
 
 /* ─── Sidebar ─── */
-function openSidebar()  { renderFileList(); sidebar.classList.add('open'); sbOverlay.classList.add('active'); updateStorage(); }
+function openSidebar()  { sidebar.classList.add('open'); sbOverlay.classList.add('active'); updateStorage(); }
 function closeSidebar() { sidebar.classList.remove('open'); sbOverlay.classList.remove('active'); }
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function relDate(ts) { const d=Date.now()-ts; if(d<60000)return'たった今'; if(d<3600000)return Math.floor(d/60000)+'分前'; if(d<86400000)return Math.floor(d/3600000)+'時間前'; const dt=new Date(ts); return(dt.getMonth()+1)+'/'+dt.getDate(); }
