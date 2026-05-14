@@ -1,0 +1,2252 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>minima</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500&family=Noto+Serif+JP:wght@300;400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   RESET & TOKENS
+═══════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+
+:root {
+  --bg:      #edeae4;
+  --sur:     #f4f1ec;
+  --hi:      #faf8f5;
+  --ink:     #1e1a16;
+  --mid:     #5c5650;
+  --soft:    #958e85;
+  --ghost:   #bdb6ac;
+  --bdr:     #d8d2c8;
+  --bdr-s:   #e4dfd7;
+  --acc:     #6b5e4c;
+  --acc2:    #a07850;
+  --ok:      #527a64;
+  --ng:      #9a5555;
+  --sans:    'Noto Sans JP', sans-serif;
+  --serif:   'Noto Serif JP', serif;
+  --mono:    'DM Mono', monospace;
+  --r:       7px;
+  --r-s:     4px;
+  --top-h:   52px;
+  --bot-h:   28px;
+  --sb-w:    320px;
+}
+
+body {
+  font-family: var(--sans);
+  font-size: 14px;
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  height: 100dvh;
+}
+::selection { background: rgba(107,94,76,.16); }
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-thumb { background: var(--bdr); border-radius: 2px; }
+
+/* ═══════════════════════════════════════
+   GRAIN
+═══════════════════════════════════════ */
+#grain {
+  position: fixed; inset: 0; pointer-events: none; z-index: 9000;
+  opacity: .028;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px;
+  mix-blend-mode: multiply;
+}
+
+/* ═══════════════════════════════════════
+   LAYOUT SHELL
+═══════════════════════════════════════ */
+#app {
+  display: flex;
+  height: 100dvh;
+  overflow: hidden;
+  animation: appEnter .45s cubic-bezier(0.16,1,0.3,1) both;
+}
+@keyframes appEnter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════ */
+#sidebar {
+  position: fixed; top: 0; left: 0; bottom: 0;
+  width: var(--sb-w);
+  background: var(--sur);
+  border-right: 1px solid var(--bdr);
+  z-index: 300;
+  display: flex; flex-direction: column;
+  transform: translateX(-100%);
+  transition: transform .3s cubic-bezier(0.16,1,0.3,1), box-shadow .3s;
+}
+#sidebar.open {
+  transform: translateX(0);
+  box-shadow: 8px 0 40px rgba(30,26,22,.12);
+}
+#sb-overlay {
+  position: fixed; inset: 0;
+  background: rgba(30,26,22,.2);
+  backdrop-filter: blur(4px);
+  z-index: 290;
+  opacity: 0; pointer-events: none;
+  transition: opacity .28s;
+}
+#sb-overlay.active { opacity: 1; pointer-events: all; }
+
+/* sidebar header */
+.sb-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 14px 10px;
+  border-bottom: 1px solid var(--bdr-s);
+  flex-shrink: 0;
+}
+.sb-head-label {
+  font-size: 10px; font-weight: 600;
+  letter-spacing: .12em; color: var(--soft);
+  text-transform: uppercase;
+}
+.sb-storage {
+  display: flex; align-items: center; gap: 6px;
+}
+.sb-storage-track {
+  width: 44px; height: 3px;
+  background: var(--bdr-s); border-radius: 2px; overflow: hidden;
+}
+#storage-bar {
+  height: 100%; width: 0%; background: var(--acc);
+  border-radius: 2px; transition: width .4s;
+}
+#storage-text {
+  font-size: 9px; color: var(--ghost);
+  font-family: var(--mono);
+}
+
+/* sidebar actions */
+.sb-actions {
+  display: flex; gap: 6px;
+  padding: 8px 10px 6px;
+  flex-shrink: 0;
+}
+.sb-btn {
+  flex: 1;
+  background: none;
+  border: 1px solid var(--bdr);
+  color: var(--mid);
+  font-family: var(--sans); font-size: 12px;
+  padding: 6px 8px; border-radius: var(--r-s);
+  cursor: pointer;
+  transition: all .15s;
+}
+.sb-btn:hover { background: var(--bg); border-color: var(--acc); color: var(--ink); }
+
+/* search */
+.sb-search-wrap {
+  padding: 4px 10px 8px;
+  flex-shrink: 0;
+}
+.sb-search-inner {
+  position: relative;
+}
+#sb-search {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--bdr-s);
+  border-radius: var(--r-s);
+  font-family: var(--mono); font-size: 11px;
+  color: var(--ink);
+  padding: 5px 24px 5px 26px;
+  outline: none;
+  transition: border-color .15s;
+}
+#sb-search:focus { border-color: var(--acc); }
+#sb-search::placeholder { color: var(--ghost); }
+.sb-search-icon {
+  position: absolute; left: 8px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px; color: var(--ghost);
+  pointer-events: none;
+}
+#sb-search-clear {
+  position: absolute; right: 7px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none;
+  font-size: 11px; color: var(--ghost);
+  cursor: pointer; display: none;
+}
+
+/* file list */
+#file-list {
+  flex: 1; overflow-y: auto;
+  padding: 4px 8px;
+}
+#sb-empty {
+  display: none;
+  flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; padding: 32px 16px;
+  color: var(--ghost); font-size: 13px;
+}
+#sb-empty.show { display: flex; }
+#sb-empty .e-icon { font-size: 26px; opacity: .25; }
+
+/* period group header */
+.sb-period-label {
+  font-size: 10px; font-weight: 600;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: var(--ghost); padding: 12px 4px 5px;
+  user-select: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between;
+  transition: color .12s;
+}
+.sb-period-label:hover { color: var(--soft); }
+.sb-period-meta { display: flex; align-items: center; gap: 5px; }
+.sb-period-count {
+  font-weight: 400; letter-spacing: 0; text-transform: none;
+  font-family: var(--mono); font-size: 10px; opacity: .65;
+}
+.sb-period-chevron {
+  font-size: 9px; opacity: .55; line-height: 1;
+  transition: transform .22s cubic-bezier(0.16,1,0.3,1);
+}
+.sb-period-label.collapsed .sb-period-chevron { transform: rotate(-90deg); }
+
+/* masonry grid */
+.sb-cards-grid {
+  columns: 2;
+  column-gap: 8px;
+  padding-bottom: 4px;
+}
+.sb-cards-grid.collapsed { display: none; }
+
+/* file type badge */
+.fi-ext-badge {
+  position: absolute; right: 6px; bottom: 6px;
+  font-size: 9px; font-family: var(--mono); color: var(--ghost);
+  background: var(--bg); border: 1px solid var(--bdr-s);
+  border-radius: 3px; padding: 1px 5px;
+  opacity: .55; pointer-events: none;
+}
+
+/* inline rename input */
+.fi-rename-input {
+  width: 100%; background: var(--hi);
+  border: 1px solid var(--acc); border-radius: 3px;
+  font-family: var(--sans); font-size: 12px; font-weight: 500;
+  color: var(--ink); padding: 2px 5px; outline: none;
+  box-shadow: 0 0 0 2px rgba(107,94,76,.12);
+}
+
+/* file card */
+.fi {
+  break-inside: avoid;
+  display: block;
+  padding: 10px 10px 8px;
+  border-radius: var(--r);
+  border: 1px solid var(--bdr-s);
+  background: var(--hi);
+  cursor: pointer;
+  transition: border-color .15s, background .15s, box-shadow .15s;
+  position: relative;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.fi::before {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: var(--acc); opacity: 0;
+  transition: opacity .15s;
+}
+.fi:hover { background: var(--sur); border-color: var(--bdr); box-shadow: 0 2px 8px rgba(30,26,22,.06); }
+.fi.active { background: var(--bdr-s); border-color: var(--acc); }
+.fi.active::before { opacity: 1; }
+
+.fi-title {
+  font-size: 12px; font-weight: 500; color: var(--ink);
+  line-height: 1.45; margin-bottom: 3px;
+  overflow: hidden; display: -webkit-box;
+  -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  padding-right: 16px;
+}
+.fi-fname {
+  font-size: 10px; color: var(--ghost);
+  font-family: var(--mono);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-bottom: 5px; opacity: .8;
+}
+.fi-preview {
+  font-size: 11px; color: var(--soft); line-height: 1.55;
+  overflow: hidden; display: -webkit-box;
+  -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  margin-bottom: 6px;
+}
+.fi-meta {
+  font-size: 10px; color: var(--ghost);
+  font-family: var(--mono);
+}
+.fi-del {
+  position: absolute; right: 5px; top: 5px;
+  width: 18px; height: 18px;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent; border: none; border-radius: 3px;
+  color: var(--soft); font-size: 10px; cursor: pointer;
+  opacity: 0; transition: opacity .12s, color .12s, background .12s;
+}
+.fi:hover .fi-del { opacity: .3; }
+.fi:hover .fi-del:hover { opacity: 1; background: rgba(154,85,85,.12); color: var(--ng); }
+.fi.active .fi-del { opacity: .35; }
+
+/* sort bar */
+.sb-sort {
+  border-top: 1px solid var(--bdr-s);
+  padding: 5px 12px;
+  display: flex; align-items: center; gap: 6px;
+  background: var(--hi); flex-shrink: 0;
+}
+.sb-sort label { font-size: 10px; color: var(--ghost); }
+.sb-sort select {
+  font-size: 10px; background: transparent; border: none;
+  color: var(--soft); outline: none; cursor: pointer;
+  font-family: var(--sans);
+}
+
+/* ═══════════════════════════════════════
+   MAIN
+═══════════════════════════════════════ */
+#main {
+  flex: 1; display: flex; flex-direction: column;
+  overflow: hidden; min-width: 0;
+}
+
+/* ─── TOPBAR ─── */
+#topbar {
+  height: var(--top-h);
+  display: flex; align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  background: var(--sur);
+  border-bottom: 1px solid var(--bdr-s);
+  flex-shrink: 0;
+  z-index: 10;
+  transition: opacity .4s;
+}
+
+/* topbar groups */
+.tb-left  { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.tb-mid   { flex: 1; display: flex; align-items: baseline; justify-content: center; gap: 2px; min-width: 0; overflow: hidden; }
+.tb-right { display: flex; align-items: center; gap: 3px; flex-shrink: 0; }
+
+/* logo */
+#logo {
+  font-family: var(--serif);
+  font-size: 17px; font-weight: 300;
+  color: var(--acc); letter-spacing: .16em;
+  user-select: none; padding: 0 2px;
+  position: relative; white-space: nowrap;
+}
+#logo::after {
+  content: '';
+  position: absolute; bottom: -2px; left: 2px; right: 2px; height: 1px;
+  background: linear-gradient(90deg, var(--acc) 0%, transparent 100%);
+  opacity: .4;
+}
+
+/* filename */
+#filename {
+  background: none; border: none; outline: none;
+  font-family: var(--sans); font-size: 13px; font-weight: 400;
+  color: var(--ink); text-align: center;
+  min-width: 40px; max-width: 180px;
+  padding: 3px 6px; border-radius: var(--r-s);
+  transition: background .15s;
+}
+#filename:hover { background: var(--bg); }
+#filename:focus { background: var(--bg); }
+#file-ext {
+  font-family: var(--mono); font-size: 11px;
+  color: var(--ghost); flex-shrink: 0; white-space: nowrap;
+}
+#dot-unsaved {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--acc2); flex-shrink: 0; align-self: center;
+  opacity: 0; transition: opacity .2s;
+  box-shadow: 0 0 5px rgba(160,120,80,.4);
+}
+#dot-unsaved.on { opacity: 1; }
+
+/* nav buttons */
+.nav-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--soft); padding: 6px; border-radius: var(--r-s);
+  display: flex; align-items: center; justify-content: center;
+  transition: color .12s, background .12s;
+  flex-shrink: 0;
+}
+.nav-btn:hover { color: var(--ink); background: var(--bg); }
+.nav-btn.active { color: var(--ink); background: var(--bdr-s); }
+
+/* format picker */
+#format-picker {
+  display: flex;
+  background: var(--bg);
+  border: 1px solid var(--bdr);
+  border-radius: var(--r-s);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.fmt-btn {
+  background: none; border: none;
+  font-family: var(--mono); font-size: 10px;
+  color: var(--soft); cursor: pointer;
+  padding: 4px 8px;
+  transition: all .12s;
+}
+.fmt-btn.active { background: var(--acc); color: var(--hi); }
+.fmt-btn:not(.active):hover { color: var(--ink); background: var(--bdr-s); }
+
+/* save button */
+.save-btn {
+  font-family: var(--sans); font-size: 12px; font-weight: 500;
+  color: var(--hi); background: var(--acc);
+  border: none; cursor: pointer;
+  padding: 5px 14px; border-radius: var(--r-s);
+  transition: background .15s, transform .1s;
+  box-shadow: 0 1px 3px rgba(107,94,76,.3);
+  white-space: nowrap; flex-shrink: 0;
+}
+.save-btn:hover  { background: var(--ink); }
+.save-btn:active { transform: translateY(1px); }
+
+/* ─── EDITOR AREA ─── */
+#content {
+  flex: 1; overflow: hidden;
+  display: flex; position: relative;
+  padding: 20px;
+  background: var(--bg);
+}
+#editor-shell {
+  flex: 1; display: flex; flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--bdr);
+  border-radius: var(--r);
+  background: var(--bg);
+  box-shadow: inset 0 1px 4px rgba(30,26,22,.04);
+}
+#editor-chrome {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 14px; height: 36px;
+  background: var(--sur);
+  border-bottom: 1px solid var(--bdr-s);
+  flex-shrink: 0;
+}
+.chrome-dots { display: flex; gap: 5px; flex-shrink: 0; }
+.chrome-dot  { display: block; width: 9px; height: 9px; border-radius: 50%; }
+#chrome-filename {
+  font-family: var(--mono); font-size: 11px;
+  color: var(--mid); letter-spacing: .04em;
+}
+#autosave-indicator {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--ok); margin-left: 6px;
+  opacity: 0; transition: opacity .3s;
+}
+.chrome-hint {
+  margin-left: auto; font-size: 11px; color: var(--ghost);
+  white-space: nowrap;
+}
+.chrome-hint code {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--acc2); background: rgba(160,120,80,.1);
+  padding: 1px 5px; border-radius: 3px;
+}
+#editor-body { flex: 1; display: flex; overflow: hidden; }
+#line-numbers {
+  padding: 20px 0 20px 14px;
+  min-width: 44px; text-align: right;
+  font-family: var(--mono); font-size: 14px; line-height: 2;
+  color: var(--ghost); opacity: .45;
+  user-select: none; overflow: hidden;
+  flex-shrink: 0;
+  border-right: 1px solid var(--bdr-s);
+  background: var(--sur);
+  white-space: pre;
+}
+#editor {
+  flex: 1; background: transparent;
+  border: none; outline: none; resize: none;
+  font-family: var(--mono); font-size: 20px; font-weight: 300;
+  line-height: 2; color: var(--ink);
+  caret-color: var(--acc2);
+  padding: 20px 40px;
+  letter-spacing: .01em;
+  -webkit-overflow-scrolling: touch;
+}
+#editor::placeholder { color: var(--ghost); font-style: italic; opacity: .7; }
+#editor-footer {
+  display: flex; align-items: center; justify-content: flex-end;
+  padding: 5px 16px;
+  background: var(--sur);
+  border-top: 1px solid var(--bdr-s);
+  flex-shrink: 0;
+}
+#word-count {
+  font-family: var(--mono); font-size: 11px; color: var(--ghost);
+}
+
+/* ─── PREVIEW ─── */
+#preview-wrap {
+  position: absolute; inset: 0;
+  background: var(--hi);
+  overflow-y: auto; z-index: 20;
+  display: none;
+}
+#preview-wrap.open { display: block; animation: fadeIn .2s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+#preview-inner { max-width: 680px; margin: 0 auto; padding: 32px 28px 100px; }
+#preview-close {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: none; border: 1px solid var(--bdr);
+  font-family: var(--sans); font-size: 11px; color: var(--soft);
+  cursor: pointer; padding: 5px 14px; border-radius: 20px;
+  margin-bottom: 28px; transition: all .12s;
+}
+#preview-close:hover { color: var(--ink); border-color: var(--acc); background: var(--bg); }
+#preview-body { font-family: var(--serif); font-size: 16px; line-height: 2.1; color: var(--ink); }
+#preview-body h1 { font-size: 1.9em; font-weight: 300; margin: 0 0 .7em; border-bottom: 1px solid var(--bdr-s); padding-bottom: .5em; }
+#preview-body h2 { font-size: 1.28em; font-weight: 400; margin: 2em 0 .55em; border-bottom: 1px solid var(--bdr-s); padding-bottom: .35em; color: var(--mid); }
+#preview-body h3 { font-size: 1.06em; font-style: italic; margin: 1.5em 0 .45em; color: var(--soft); }
+#preview-body p { margin: 0 0 1.1em; }
+#preview-body a { color: var(--acc); text-decoration: underline; text-underline-offset: 3px; }
+#preview-body strong { font-weight: 500; }
+#preview-body em { font-style: italic; color: var(--mid); }
+#preview-body code { font-family: var(--mono); font-size: .84em; background: var(--bg); border: 1px solid var(--bdr-s); padding: 1px 6px; border-radius: 3px; color: var(--acc); }
+#preview-body pre { background: var(--bg); border: 1px solid var(--bdr-s); padding: 18px 20px; border-radius: var(--r-s); overflow-x: auto; margin: 1.2em 0; }
+#preview-body pre code { background: none; border: none; padding: 0; color: var(--ink); }
+#preview-body blockquote { border-left: 2px solid var(--acc); margin: 1.4em 0; padding: .1em 0 .1em 18px; color: var(--mid); font-style: italic; opacity: .75; }
+#preview-body ul, #preview-body ol { padding-left: 1.6em; margin: 0 0 1em; }
+#preview-body li { margin: .35em 0; }
+#preview-body hr { border: none; border-top: 1px solid var(--bdr-s); margin: 2.2em 0; }
+#preview-body img { max-width: 100%; border-radius: var(--r); }
+#preview-body table { border-collapse: collapse; width: 100%; margin: 1.2em 0; font-size: .88em; }
+#preview-body th, #preview-body td { border: 1px solid var(--bdr); padding: 8px 12px; }
+#preview-body th { background: var(--bg); font-weight: 500; }
+
+/* ─── STATUSBAR ─── */
+#statusbar {
+  height: var(--bot-h);
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 18px;
+  background: var(--sur);
+  border-top: 1px solid var(--bdr-s);
+  font-size: 11px; color: var(--ghost);
+  font-family: var(--mono);
+  flex-shrink: 0;
+  transition: opacity .4s;
+}
+#st-msg { margin-left: auto; font-style: italic; color: var(--soft); font-family: var(--sans); }
+
+/* ─── FOCUS MODE ─── */
+body.focus #topbar,
+body.focus #statusbar { opacity: 0; pointer-events: none; }
+body.focus #editor { padding-top: 80px; }
+
+/* ═══════════════════════════════════════
+   TOAST
+═══════════════════════════════════════ */
+#toast {
+  position: fixed; bottom: 44px; left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: var(--ink); color: var(--hi);
+  font-family: var(--sans); font-size: 13px;
+  padding: 9px 22px; border-radius: 22px;
+  opacity: 0; pointer-events: none;
+  transition: opacity .2s, transform .22s cubic-bezier(0.16,1,0.3,1);
+  white-space: nowrap; z-index: 8000;
+  box-shadow: 0 4px 20px rgba(30,26,22,.22);
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ═══════════════════════════════════════
+   MODAL BASE
+═══════════════════════════════════════ */
+.modal {
+  position: fixed; inset: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+}
+.modal.hidden { display: none; }
+.modal-bg {
+  position: absolute; inset: 0;
+  background: rgba(30,26,22,.78);
+  backdrop-filter: blur(6px);
+}
+.modal-card {
+  position: relative; z-index: 1;
+  background: var(--hi);
+  border: 1px solid var(--bdr-s);
+  border-radius: var(--r);
+  box-shadow: 0 16px 48px rgba(30,26,22,.14);
+  animation: popIn .24s cubic-bezier(0.16,1,0.3,1);
+  max-height: 90dvh;
+  overflow-y: auto;
+}
+@keyframes popIn {
+  from { opacity: 0; transform: scale(.95) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 18px 14px;
+  border-bottom: 1px solid var(--bdr-s);
+  background: var(--sur);
+}
+.modal-head h2 {
+  font-family: var(--serif); font-size: 16px; font-weight: 300;
+  letter-spacing: .06em; color: var(--ink);
+}
+.icon-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--soft); font-size: 14px;
+  padding: 4px 6px; border-radius: var(--r-s);
+  transition: color .12s, background .12s;
+}
+.icon-btn:hover { color: var(--ng); background: rgba(154,85,85,.08); }
+
+/* ─── shared input / button styles ─── */
+.field {
+  width: 100%;
+  background: var(--bg); border: 1px solid var(--bdr);
+  border-radius: var(--r-s);
+  font-family: var(--sans); font-size: 13px; font-weight: 300;
+  color: var(--ink); padding: 8px 11px; outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  resize: vertical;
+}
+.field:focus { border-color: var(--acc); box-shadow: 0 0 0 3px rgba(107,94,76,.1); }
+.field::placeholder { color: var(--ghost); }
+.act-btn {
+  background: var(--acc); border: 1px solid transparent;
+  font-family: var(--sans); font-size: 12px; font-weight: 500;
+  color: var(--hi); cursor: pointer;
+  padding: 8px 18px; border-radius: var(--r-s);
+  transition: background .15s, transform .1s;
+  box-shadow: 0 1px 3px rgba(107,94,76,.25);
+}
+.act-btn:hover  { background: var(--ink); }
+.act-btn:active { transform: translateY(1px); }
+.act-btn.ghost {
+  background: none; border-color: var(--bdr); color: var(--mid); box-shadow: none;
+}
+.act-btn.ghost:hover { background: var(--bg); color: var(--ink); border-color: var(--acc); }
+.sec-label {
+  font-size: 10px; font-weight: 600; color: var(--soft);
+  text-transform: uppercase; letter-spacing: .1em;
+}
+
+/* ═══════════════════════════════════════
+   SHARE MODAL
+═══════════════════════════════════════ */
+#share-card { width: min(420px, 100%); }
+.modal-tabs {
+  display: flex; padding: 0 18px;
+  border-bottom: 1px solid var(--bdr-s);
+}
+.tab {
+  background: none; border: none;
+  border-bottom: 2px solid transparent;
+  font-family: var(--sans); font-size: 12px;
+  color: var(--soft); cursor: pointer;
+  padding: 9px 12px 7px; margin-bottom: -1px;
+  transition: color .12s;
+}
+.tab:hover  { color: var(--ink); }
+.tab.active { color: var(--ink); border-bottom-color: var(--acc); font-weight: 500; }
+.tab-body   { display: none; padding: 18px; }
+.tab-body.active { display: block; }
+.hint { font-size: 12px; color: var(--soft); margin-bottom: 12px; line-height: 1.6; }
+.field-label {
+  display: block; font-size: 10px; font-weight: 600;
+  color: var(--soft); letter-spacing: .1em; text-transform: uppercase;
+  margin: 12px 0 5px;
+}
+.field-label:first-child { margin-top: 0; }
+#qr-frame {
+  display: flex; justify-content: center; align-items: center;
+  background: #fff; border: 1px solid var(--bdr-s);
+  border-radius: var(--r-s); padding: 16px;
+  min-height: 178px; margin-bottom: 10px;
+}
+#qr-placeholder { font-size: 56px; color: var(--ghost); opacity: .28; line-height: 1; }
+#qr-canvas { display: none; border-radius: 3px; }
+#qr-note { font-size: 11px; color: var(--soft); text-align: center; font-style: italic; min-height: 16px; margin-bottom: 12px; }
+#copy-preview {
+  background: var(--bg); border: 1px solid var(--bdr-s);
+  border-radius: var(--r-s); padding: 12px 14px;
+  font-family: var(--mono); font-size: 12px; font-weight: 300;
+  color: var(--mid); line-height: 1.8; max-height: 140px;
+  overflow-y: auto; white-space: pre-wrap; word-break: break-word;
+  margin-bottom: 14px;
+}
+#mail-msg { font-size: 12px; color: var(--soft); font-style: italic; margin-top: 8px; text-align: center; min-height: 16px; }
+.row-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ═══════════════════════════════════════
+   NEW FILE MODAL
+═══════════════════════════════════════ */
+#nf-card {
+  width: min(820px, 96vw);
+  max-height: 84dvh;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+}
+#nf-body {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  flex: 1; overflow: hidden; min-height: 0;
+}
+#nf-tpl-col { padding: 20px; overflow-y: auto; }
+#nf-fm-col  {
+  padding: 20px; overflow-y: auto;
+  background: var(--bg);
+  border-left: 1px solid var(--bdr-s);
+}
+#nf-tpl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+.nf-tpl-btn {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 8px; padding: 16px 10px;
+  background: var(--hi); border: 1px solid var(--bdr-s);
+  border-radius: var(--r); cursor: pointer;
+  transition: all .15s;
+  text-align: center; position: relative; overflow: hidden;
+}
+.nf-tpl-btn::before {
+  content: ''; position: absolute; inset: 0 auto auto 0;
+  width: 100%; height: 2px; background: var(--acc);
+  opacity: 0; transition: opacity .15s;
+}
+.nf-tpl-btn:hover { background: var(--sur); border-color: var(--acc); transform: translateY(-1px); box-shadow: 0 3px 10px rgba(30,26,22,.08); }
+.nf-tpl-btn:hover::before { opacity: 1; }
+.nf-tpl-btn:active { transform: translateY(0); }
+.nf-tpl-icon { font-size: 24px; line-height: 1; }
+.nf-tpl-name { font-size: 11px; font-weight: 500; color: var(--mid); }
+
+/* toggle */
+.toggle-wrap { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.toggle-input { position: absolute; opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  display: inline-block; width: 34px; height: 19px;
+  background: var(--ghost); border-radius: 19px;
+  position: relative; transition: background .2s; cursor: pointer; flex-shrink: 0;
+}
+.toggle-slider::before {
+  content: ''; position: absolute;
+  width: 13px; height: 13px; background: #fff;
+  border-radius: 50%; top: 3px; left: 3px;
+  transition: transform .2s;
+  box-shadow: 0 1px 3px rgba(30,26,22,.15);
+}
+.toggle-input:checked + .toggle-slider { background: var(--ok); }
+.toggle-input:checked + .toggle-slider::before { transform: translateX(15px); }
+
+/* fm fields */
+.fm-hint {
+  font-family: var(--mono); font-size: 11px; color: var(--mid);
+  background: var(--hi); padding: 8px 11px; border-radius: var(--r-s);
+  border: 1px solid var(--bdr-s); margin-bottom: 12px; line-height: 1.6;
+}
+.fm-hint code { color: var(--acc2); }
+.fm-row { display: flex; align-items: center; gap: 5px; margin-bottom: 7px; }
+.fm-check { width: 13px; height: 13px; cursor: pointer; accent-color: var(--acc); flex-shrink: 0; }
+.fm-key { width: 72px; flex-shrink: 0; }
+.fm-val { flex: 1; }
+.fm-row input[type="text"] {
+  background: var(--hi); border: 1px solid var(--bdr);
+  border-radius: var(--r-s); color: var(--ink);
+  font-family: var(--mono); font-size: 11px;
+  padding: 6px 8px; outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  width: 100%;
+}
+.fm-row input[type="text"]:focus { border-color: var(--acc); box-shadow: 0 0 0 2px rgba(107,94,76,.1); }
+.fm-sep { font-size: 11px; color: var(--ghost); flex-shrink: 0; }
+.fm-del {
+  background: none; border: none; color: var(--soft); cursor: pointer;
+  font-size: 12px; padding: 2px 4px; border-radius: 3px;
+  opacity: .35; transition: all .12s; flex-shrink: 0;
+}
+.fm-del:hover { opacity: .9; color: var(--ng); background: rgba(154,85,85,.1); }
+.fm-body { overflow: hidden; transition: max-height .28s, opacity .22s; }
+.fm-body.collapsed { max-height: 0 !important; opacity: 0; pointer-events: none; }
+#nf-fm-add {
+  width: 100%; padding: 8px; margin-top: 6px;
+  background: transparent; border: 1px dashed var(--bdr);
+  color: var(--soft); border-radius: var(--r-s);
+  font-size: 12px; cursor: pointer;
+  transition: all .15s;
+}
+#nf-fm-add:hover { background: var(--hi); border-color: var(--acc); color: var(--acc); border-style: solid; }
+
+/* ═══════════════════════════════════════
+   TEMPLATE MANAGER
+═══════════════════════════════════════ */
+#tpl-card {
+  width: min(860px, 96vw);
+  height: min(580px, 88dvh);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.tpl-body {
+  display: grid; grid-template-columns: 210px 1fr;
+  flex: 1; overflow: hidden;
+}
+.tpl-left {
+  display: flex; flex-direction: column;
+  border-right: 1px solid var(--bdr-s);
+  background: var(--bg); overflow: hidden;
+}
+.tpl-left-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 13px; border-bottom: 1px solid var(--bdr-s); flex-shrink: 0;
+}
+.tpl-add-btn {
+  display: flex; align-items: center; gap: 4px;
+  background: none; border: 1px solid var(--bdr);
+  color: var(--mid); font-family: var(--sans); font-size: 11px;
+  padding: 4px 9px; border-radius: var(--r-s); cursor: pointer;
+  transition: all .12s;
+}
+.tpl-add-btn:hover { background: var(--sur); border-color: var(--acc); color: var(--acc); }
+#tpl-list { flex: 1; overflow-y: auto; padding: 6px; }
+.tpl-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px; border-radius: var(--r-s);
+  cursor: pointer; transition: background .12s;
+  position: relative;
+}
+.tpl-item::before {
+  content: ''; position: absolute; left: 0; top: 20%; bottom: 20%;
+  width: 2px; border-radius: 1px; background: var(--acc);
+  opacity: 0; transition: opacity .15s;
+}
+.tpl-item:hover { background: var(--sur); }
+.tpl-item.active { background: var(--bdr-s); }
+.tpl-item.active::before { opacity: 1; }
+.tpl-item-icon { font-size: 11px; color: var(--ghost); flex-shrink: 0; }
+.tpl-item-name { flex: 1; font-size: 13px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.tpl-right { display: flex; flex-direction: column; overflow: hidden; background: var(--hi); }
+#tpl-empty {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10px; padding: 40px;
+}
+#tpl-empty .e-icon { font-size: 30px; color: var(--ghost); opacity: .28; }
+#tpl-empty p { font-size: 13px; color: var(--ghost); text-align: center; line-height: 1.8; }
+#tpl-form { display: none; flex-direction: column; height: 100%; overflow: hidden; }
+.tpl-form-top {
+  display: flex; align-items: flex-end; gap: 10px;
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid var(--bdr-s);
+  background: var(--sur); flex-shrink: 0;
+}
+.tpl-form-top .field-group { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.tpl-form-actions { display: flex; gap: 7px; flex-shrink: 0; }
+.tpl-code-wrap {
+  flex: 1; display: flex; flex-direction: column; overflow: hidden;
+  margin: 14px 18px 0; border: 1px solid var(--bdr);
+  border-radius: var(--r); background: var(--bg);
+}
+.tpl-code-chrome {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 12px; height: 33px;
+  background: var(--sur);
+  border-bottom: 1px solid var(--bdr-s); flex-shrink: 0;
+}
+.tpl-textarea-wrap { flex: 1; display: flex; overflow: hidden; }
+#tpl-line-nums {
+  padding: 12px 0 12px 10px;
+  min-width: 34px; text-align: right;
+  font-family: var(--mono); font-size: 12px; line-height: 1.75;
+  color: var(--ghost); opacity: .55;
+  user-select: none; overflow: hidden; flex-shrink: 0;
+  border-right: 1px solid var(--bdr-s);
+  background: var(--sur); white-space: pre;
+}
+#tpl-content {
+  flex: 1; background: transparent;
+  border: none; outline: none; resize: none;
+  font-family: var(--mono); font-size: 13px; font-weight: 300;
+  line-height: 1.75; color: var(--ink);
+  caret-color: var(--acc2); padding: 12px 14px;
+}
+.tpl-footer {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 18px 12px; flex-shrink: 0;
+}
+.tpl-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; color: var(--mid);
+  background: var(--sur); border: 1px solid var(--bdr-s);
+  padding: 2px 9px 2px 7px; border-radius: 12px;
+}
+.tpl-badge code { font-family: var(--mono); font-size: 10px; color: var(--acc2); background: rgba(160,120,80,.1); padding: 1px 4px; border-radius: 3px; }
+
+/* ═══════════════════════════════════════
+   GITHUB MODAL
+═══════════════════════════════════════ */
+#gh-card { width: min(440px, 100%); }
+.gh-target {
+  background: var(--bg); border: 1px solid var(--bdr-s);
+  border-radius: var(--r-s); padding: 11px 13px;
+  font-family: var(--mono); font-size: 11px; color: var(--mid);
+  line-height: 1.8; margin-bottom: 14px;
+}
+.gh-target .repo { color: var(--acc2); }
+.gh-target .path { color: var(--ghost); }
+.gh-target .fname { color: var(--mid); }
+#gh-status {
+  display: none; font-size: 11px; padding: 9px 11px;
+  border-radius: var(--r-s); border: 1px solid var(--bdr);
+  line-height: 1.6; margin-bottom: 10px;
+}
+#gh-status.ok  { background: #f0f7f4; border-color: var(--ok);  color: var(--ok); }
+#gh-status.err { background: #fcf0f0; border-color: var(--ng);  color: var(--ng); }
+#gh-status.inf { background: var(--sur); border-color: var(--bdr); color: var(--mid); }
+.gh-tip { font-size: 10px; color: var(--ghost); line-height: 1.7; border-top: 1px solid var(--bdr-s); padding-top: 11px; margin-top: 4px; }
+.gh-tip code { font-family: var(--mono); background: var(--bg); padding: 1px 4px; border-radius: 3px; color: var(--acc2); }
+.gh-save-row { display: flex; align-items: center; gap: 7px; margin-top: 7px; }
+.gh-save-row label { font-size: 11px; color: var(--soft); cursor: pointer; }
+.gh-actions { display: flex; gap: 8px; margin-top: 6px; }
+
+/* ═══════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════ */
+@media (max-width: 680px) {
+  /* modal → bottom sheet */
+  .modal { padding: 0; align-items: flex-end; }
+  .modal-card { border-radius: 14px 14px 0 0; border-bottom: none; animation: slideUp .3s cubic-bezier(0.16,1,0.3,1); max-height: 92dvh; }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+  /* new file modal: 1 col */
+  #nf-card { width: 100%; }
+  #nf-body { grid-template-columns: 1fr; overflow-y: auto; }
+  #nf-fm-col { border-left: none; border-top: 1px solid var(--bdr-s); }
+  #nf-tpl-grid { grid-template-columns: repeat(3, 1fr); }
+
+  /* tpl manager */
+  #tpl-card { width: 100%; height: 92dvh; }
+  .tpl-body { grid-template-columns: 1fr; grid-template-rows: 160px 1fr; }
+  .tpl-left { border-right: none; border-bottom: 1px solid var(--bdr-s); }
+
+  /* editor */
+  #content { padding: 10px; }
+  #editor { font-size: 16px; padding: 14px 16px; }
+  #line-numbers { display: none; }
+  .chrome-hint { display: none; }
+
+  /* topbar */
+  #topbar { padding: 0 8px; gap: 3px; }
+  #logo { font-size: 15px; }
+  #filename { max-width: 100px; font-size: 12px; }
+  #format-picker { display: none; }
+  #btn-focus { display: none; }
+}
+
+@media (max-width: 380px) {
+  #logo { display: none; }
+  #filename { max-width: 80px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<div id="grain"></div>
+<aside id="sidebar">
+  <div class="sb-head">
+    <span class="sb-head-label">ファイル</span>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div class="sb-storage">
+        <div class="sb-storage-track"><div id="storage-bar"></div></div>
+        <span id="storage-text">0KB</span>
+      </div>
+      <button class="icon-btn" id="btn-sb-close">✕</button>
+    </div>
+  </div>
+
+  <div class="sb-actions">
+    <button class="sb-btn" id="btn-new">＋ 新規</button>
+    <button class="sb-btn" id="btn-open">↑ 開く</button>
+  </div>
+
+  <div class="sb-search-wrap">
+    <div class="sb-search-inner">
+      <span class="sb-search-icon">🔍</span>
+      <input id="sb-search" type="text" placeholder="検索…">
+      <button id="sb-search-clear">✕</button>
+    </div>
+  </div>
+
+  <div id="file-list"></div>
+  <div id="sb-empty"><span class="e-icon">◇</span><p>ファイルなし</p></div>
+
+  <div class="sb-sort">
+    <label for="sort-select">並び替え</label>
+    <select id="sort-select">
+      <option value="updated">更新日順</option>
+      <option value="created">作成日順</option>
+      <option value="name">名前順</option>
+    </select>
+  </div>
+</aside>
+<div id="sb-overlay"></div>
+<div id="app">
+
+<!-- ════════════ SIDEBAR ════════════ -->
+
+
+<!-- ════════════ MAIN ════════════ -->
+<div id="main">
+
+  <header id="topbar">
+    <div class="tb-left">
+      <button class="nav-btn" id="btn-sidebar" title="ファイル一覧 (⌘\\)">
+        <svg width="18" height="14" viewBox="0 0 18 14" fill="none">
+          <rect y="0"   width="18" height="1.8" rx=".9" fill="currentColor"/>
+          <rect y="6.1" width="18" height="1.8" rx=".9" fill="currentColor"/>
+          <rect y="12.2" width="11" height="1.8" rx=".9" fill="currentColor"/>
+        </svg>
+      </button>
+      <span id="logo">minima</span>
+    </div>
+
+    <div class="tb-mid">
+      <input id="filename" type="text" value="untitled" spellcheck="false" autocomplete="off">
+      <span id="file-ext">.md</span>
+      <span id="dot-unsaved"></span>
+    </div>
+
+    <div class="tb-right">
+      <div id="format-picker">
+        <button class="fmt-btn active" data-fmt="md">.md</button>
+        <button class="fmt-btn" data-fmt="txt">.txt</button>
+      </div>
+      <button class="nav-btn" id="btn-preview" title="プレビュー (⌘P)">
+        <svg width="17" height="13" viewBox="0 0 17 13" fill="none">
+          <path d="M8.5 1C5 1 1.5 6.5 1.5 6.5S5 12 8.5 12 15.5 6.5 15.5 6.5 12 1 8.5 1z" stroke="currentColor" stroke-width="1.3" fill="none"/>
+          <circle cx="8.5" cy="6.5" r="2.2" stroke="currentColor" stroke-width="1.3" fill="none"/>
+        </svg>
+      </button>
+      <button class="nav-btn" id="btn-github" title="GitHubへ公開">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 1C4.134 1 1 4.134 1 8c0 3.09 2.004 5.716 4.784 6.641.35.064.478-.152.478-.337 0-.166-.006-.606-.01-1.19-1.947.423-2.357-.94-2.357-.94-.318-.808-.776-1.023-.776-1.023-.635-.434.048-.425.048-.425.702.049 1.071.72 1.071.72.624 1.069 1.637.76 2.036.582.063-.452.244-.76.444-.935-1.554-.177-3.188-.777-3.188-3.456 0-.764.273-1.388.72-1.877-.072-.177-.312-.888.069-1.85 0 0 .587-.188 1.923.716A6.71 6.71 0 018 4.998c.595.003 1.194.08 1.754.236 1.334-.904 1.92-.717 1.92-.717.382.963.142 1.674.07 1.85.448.49.72 1.113.72 1.878 0 2.686-1.637 3.277-3.196 3.45.251.217.475.644.475 1.298 0 .936-.009 1.692-.009 1.921 0 .187.126.405.48.337C12.998 13.714 15 11.088 15 8c0-3.866-3.134-7-7-7z"/>
+        </svg>
+      </button>
+      <button class="nav-btn" id="btn-share" title="共有">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <circle cx="12.5" cy="3.5"  r="1.8" stroke="currentColor" stroke-width="1.2" fill="none"/>
+          <circle cx="3.5"  cy="8"    r="1.8" stroke="currentColor" stroke-width="1.2" fill="none"/>
+          <circle cx="12.5" cy="12.5" r="1.8" stroke="currentColor" stroke-width="1.2" fill="none"/>
+          <line x1="5.2" y1="7.1"  x2="10.8" y2="4.4"  stroke="currentColor" stroke-width="1.2"/>
+          <line x1="5.2" y1="8.9"  x2="10.8" y2="11.6" stroke="currentColor" stroke-width="1.2"/>
+        </svg>
+      </button>
+      <button class="nav-btn" id="btn-focus" title="フォーカス (⌘.)">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M2 5V2h3M11 2h3v3M14 11v3h-3M5 14H2v-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <button class="save-btn" id="btn-save">保存</button>
+    </div>
+  </header>
+
+  <div id="content">
+    <div id="editor-shell">
+      <div id="editor-chrome">
+        <div class="chrome-dots">
+          <span class="chrome-dot" style="background:#e0786c;"></span>
+          <span class="chrome-dot" style="background:#d4a843;"></span>
+          <span class="chrome-dot" style="background:#65b863;"></span>
+        </div>
+        <span id="chrome-filename">untitled.md</span>
+        <span id="autosave-indicator">✓ 保存済み</span>
+        <span class="chrome-hint">
+          <code>{{content}}</code> = 本文 &nbsp;·&nbsp; <code>{{today}}</code> = 今日の日付
+        </span>
+      </div>
+      <div id="editor-body">
+        <div id="line-numbers"></div>
+        <textarea id="editor" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" placeholder="書き始める…"></textarea>
+      </div>
+      <div id="editor-footer">
+        <span id="word-count">0 文字</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="preview-wrap">
+    <div id="preview-inner">
+      <button id="preview-close">✕ 閉じる</button>
+      <div id="preview-body"></div>
+    </div>
+  </div>
+
+  <footer id="statusbar">
+    <span id="st-chars">0 文字</span>
+    <span style="opacity:.4;">·</span>
+    <span id="st-lines">1 行</span>
+    <span id="st-msg"></span>
+  </footer>
+</div>
+</div><!-- /app -->
+
+
+<!-- ════════════ SHARE MODAL ════════════ -->
+<div id="share-modal" class="modal hidden">
+  <div class="modal-bg" id="share-bg"></div>
+  <div class="modal-card" id="share-card">
+    <div class="modal-head">
+      <h2>共有</h2>
+      <button class="icon-btn" id="share-close">✕</button>
+    </div>
+    <div class="modal-tabs">
+      <button class="tab active" data-tab="qr">QRコード</button>
+      <button class="tab" data-tab="mail">メール</button>
+      <button class="tab" data-tab="copy">コピー</button>
+    </div>
+    <div class="tab-body active" id="tb-qr">
+      <p class="hint">スキャンして他デバイスにテキストを転送</p>
+      <div id="qr-frame">
+        <div id="qr-placeholder">◫</div>
+        <canvas id="qr-canvas"></canvas>
+      </div>
+      <p id="qr-note"></p>
+      <div class="row-btns">
+        <button class="act-btn" id="btn-qr-gen">生成する</button>
+        <button class="act-btn ghost" id="btn-qr-dl" style="display:none;">保存する</button>
+      </div>
+    </div>
+    <div class="tab-body" id="tb-mail">
+      <p class="hint">メールアプリでテキストを送信</p>
+      <label class="field-label">送信先</label>
+      <input class="field" type="email" id="mail-to" placeholder="example@email.com">
+      <label class="field-label">件名</label>
+      <input class="field" type="text" id="mail-subject">
+      <label class="field-label">メモ（任意）</label>
+      <textarea class="field" id="mail-memo" rows="2" placeholder="一言メモ…"></textarea>
+      <button class="act-btn" id="btn-mail-send" style="margin-top:14px;">メールアプリを開く</button>
+      <p id="mail-msg"></p>
+    </div>
+    <div class="tab-body" id="tb-copy">
+      <p class="hint">テキスト全体をクリップボードにコピー</p>
+      <div id="copy-preview"></div>
+      <button class="act-btn" id="btn-copy">コピーする</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════ NEW FILE MODAL ════════════ -->
+<div id="new-file-modal" class="modal hidden">
+  <div class="modal-bg" id="nf-bg"></div>
+  <div class="modal-card" id="nf-card">
+    <div class="modal-head">
+      <h2>新規ファイル</h2>
+      <button class="icon-btn" id="nf-cancel">✕</button>
+    </div>
+    <div id="nf-body">
+      <div id="nf-tpl-col">
+        <div style="margin-bottom:18px;">
+          <label class="field-label" for="nf-title">タイトル</label>
+          <input class="field" type="text" id="nf-title"
+            placeholder="例：2026年5月の日記"
+            spellcheck="false" autocomplete="off"
+            style="font-size:14px;padding:9px 12px;">
+          <div style="font-size:11px;color:var(--soft);margin-top:5px;line-height:1.6;">
+            省略するとテンプレート名がファイル名になります。タイトルはファイル内容には書き込まれず、IndexedDB で管理されます。
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <span class="sec-label">テンプレート</span>
+          <button class="act-btn ghost" id="nf-open-tpl-mgr" style="padding:4px 11px;font-size:11px;">編集…</button>
+        </div>
+        <div id="nf-tpl-grid"></div>
+      </div>
+      <div id="nf-fm-col">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <span class="sec-label">フロントマター</span>
+          <label class="toggle-wrap">
+            <input type="checkbox" id="nf-fm-toggle" class="toggle-input">
+            <span class="toggle-slider"></span>
+            <span style="font-size:12px;color:var(--mid);">挿入する</span>
+          </label>
+        </div>
+        <div id="nf-fm-body" class="fm-body collapsed" style="max-height:360px;">
+          <div class="fm-hint"><code>{{today}}</code> → ISO 8601 日付（例: <code>2026-05-15</code>）に置換されます</div>
+          <div id="nf-fm-fields"></div>
+          <button id="nf-fm-add">＋ フィールドを追加</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════ TEMPLATE MANAGER ════════════ -->
+<div id="tpl-manager-modal" class="modal hidden">
+  <div class="modal-bg" id="tpl-mgr-bg"></div>
+  <div class="modal-card" id="tpl-card">
+    <div class="modal-head">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="color:var(--acc);opacity:.7;">◈</span>
+        <h2>テンプレート管理</h2>
+      </div>
+      <button class="icon-btn" id="tpl-mgr-close">✕</button>
+    </div>
+    <div class="tpl-body">
+      <div class="tpl-left">
+        <div class="tpl-left-head">
+          <span class="sec-label">テンプレート</span>
+          <button class="tpl-add-btn" id="tpl-add-btn">
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            追加
+          </button>
+        </div>
+        <div id="tpl-list"></div>
+      </div>
+      <div class="tpl-right">
+        <div id="tpl-empty">
+          <div class="e-icon">◇</div>
+          <p>テンプレートを選択するか、<br>新規追加してください</p>
+        </div>
+        <div id="tpl-form">
+          <div class="tpl-form-top">
+            <div class="field-group">
+              <span class="sec-label">テンプレート名</span>
+              <input class="field" id="tpl-name" type="text" placeholder="例：日記、議事録…" spellcheck="false">
+            </div>
+            <div class="tpl-form-actions">
+              <button class="act-btn ghost" id="tpl-del-btn" style="color:var(--ng);">削除</button>
+              <button class="act-btn" id="tpl-save-btn">保存する</button>
+            </div>
+          </div>
+          <div class="tpl-code-wrap">
+            <div class="tpl-code-chrome">
+              <div class="chrome-dots" style="opacity:.65;">
+                <span class="chrome-dot" style="background:#e0786c;width:8px;height:8px;"></span>
+                <span class="chrome-dot" style="background:#d4a843;width:8px;height:8px;"></span>
+                <span class="chrome-dot" style="background:#65b863;width:8px;height:8px;"></span>
+              </div>
+              <span style="font-family:var(--mono);font-size:11px;color:var(--mid);">content.md</span>
+              <span class="chrome-hint" style="margin-left:auto;"><code>{{content}}</code> = 本文 &nbsp;·&nbsp; <code>{{today}}</code> = 今日</span>
+            </div>
+            <div class="tpl-textarea-wrap">
+              <div id="tpl-line-nums"></div>
+              <textarea id="tpl-content" spellcheck="false" autocomplete="off"
+                placeholder="# タイトル&#10;&#10;{{content}}&#10;&#10;---&#10;作成日：{{today}}"></textarea>
+            </div>
+          </div>
+          <div class="tpl-footer">
+            <span class="sec-label">変数</span>
+            <span class="tpl-badge"><code>{{content}}</code> 本文を挿入</span>
+            <span class="tpl-badge"><code>{{today}}</code> 今日の日付</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════ GITHUB MODAL ════════════ -->
+<div id="github-modal" class="modal hidden">
+  <div class="modal-bg" id="github-bg"></div>
+  <div class="modal-card" id="gh-card">
+    <div class="modal-head">
+      <div style="display:flex;align-items:center;gap:9px;">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="var(--acc)"><path d="M8 1C4.134 1 1 4.134 1 8c0 3.09 2.004 5.716 4.784 6.641.35.064.478-.152.478-.337 0-.166-.006-.606-.01-1.19-1.947.423-2.357-.94-2.357-.94-.318-.808-.776-1.023-.776-1.023-.635-.434.048-.425.048-.425.702.049 1.071.72 1.071.72.624 1.069 1.637.76 2.036.582.063-.452.244-.76.444-.935-1.554-.177-3.188-.777-3.188-3.456 0-.764.273-1.388.72-1.877-.072-.177-.312-.888.069-1.85 0 0 .587-.188 1.923.716A6.71 6.71 0 018 4.998c.595.003 1.194.08 1.754.236 1.334-.904 1.92-.717 1.92-.717.382.963.142 1.674.07 1.85.448.49.72 1.113.72 1.878 0 2.686-1.637 3.277-3.196 3.45.251.217.475.644.475 1.298 0 .936-.009 1.692-.009 1.921 0 .187.126.405.48.337C12.998 13.714 15 11.088 15 8c0-3.866-3.134-7-7-7z"/></svg>
+        <h2>GitHubへ公開</h2>
+      </div>
+      <button class="icon-btn" id="github-close">✕</button>
+    </div>
+    <div style="padding:18px;display:flex;flex-direction:column;gap:13px;">
+      <div class="gh-target">
+        <div style="font-size:10px;font-weight:600;color:var(--soft);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px;font-family:var(--sans);">プッシュ先</div>
+        <div class="repo">kouta0000/kouta0000.github.io</div>
+        <div class="path">└ src/data/blog/<span class="fname" id="gh-target-fname">untitled.md</span></div>
+      </div>
+
+      <div>
+        <label class="field-label" style="display:flex;align-items:center;justify-content:space-between;">
+          Personal Access Token
+          <a href="https://github.com/settings/tokens/new?scopes=repo&description=minima-editor" target="_blank" rel="noopener" style="font-size:11px;color:var(--acc);text-decoration:none;font-weight:400;text-transform:none;letter-spacing:0;">発行する →</a>
+        </label>
+        <input id="gh-pat" type="password" class="field" style="font-family:var(--mono);font-size:12px;" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+        <div class="gh-save-row">
+          <input type="checkbox" id="gh-pat-save" style="accent-color:var(--acc);width:13px;height:13px;cursor:pointer;">
+          <label for="gh-pat-save">このブラウザに保存する（個人デバイス専用）</label>
+        </div>
+      </div>
+
+      <div>
+        <label class="field-label">コミットメッセージ</label>
+        <input id="gh-commit-msg" type="text" class="field" placeholder="docs: update post">
+      </div>
+
+      <div>
+        <label class="field-label">ブランチ</label>
+        <input id="gh-branch" type="text" value="main" class="field" style="font-family:var(--mono);font-size:12px;">
+      </div>
+
+      <div id="gh-status"></div>
+
+      <div class="gh-actions">
+        <button class="act-btn" id="gh-push-btn" style="flex:1;">プッシュする</button>
+        <a id="gh-view-link" class="act-btn ghost" href="#" target="_blank" rel="noopener" style="display:none;text-decoration:none;text-align:center;">GitHub →</a>
+      </div>
+
+      <p class="gh-tip">⚠️ PATには <code>repo</code> スコープが必要です。プッシュ後 Netlify が自動デプロイします。</p>
+    </div>
+  </div>
+</div>
+
+
+<div id="toast"></div>
+<input type="file" id="file-input" accept=".md,.txt" style="display:none;">
+
+<script>
+'use strict';
+/* ═══ IndexedDB Storage ═══ */
+const IDB = {
+  _db: null,
+  open() {
+    if (this._db) return Promise.resolve(this._db);
+    return new Promise((res, rej) => {
+      const r = indexedDB.open('minima_db', 1);
+      r.onupgradeneeded = e => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains('docs')) {
+          const s = db.createObjectStore('docs', { keyPath: 'id' });
+          s.createIndex('updatedAt', 'updatedAt'); s.createIndex('createdAt', 'createdAt'); s.createIndex('name', 'name');
+        }
+      };
+      r.onsuccess = e => { this._db = e.target.result; res(this._db); };
+      r.onerror   = e => rej(e.target.error);
+    });
+  },
+  async tx(mode, fn) {
+    try {
+      const db = await this.open();
+      const tx = db.transaction('docs', mode);
+      const store = tx.objectStore('docs');
+      return await fn(store);
+    } catch { return null; }
+  },
+  getAll() { return this.tx('readonly', s => new Promise((r,j)=>{ const q=s.getAll(); q.onsuccess=()=>r(q.result||[]); q.onerror=()=>j(q.error); })); },
+  put(doc)  { return this.tx('readwrite', s => new Promise((r,j)=>{ const q=s.put(doc); q.onsuccess=()=>r(doc); q.onerror=()=>j(q.error); })); },
+  del(id)   { return this.tx('readwrite', s => new Promise((r,j)=>{ const q=s.delete(id); q.onsuccess=()=>r(); q.onerror=()=>j(q.error); })); },
+  async estimate() {
+    if (navigator.storage?.estimate) { const e = await navigator.storage.estimate(); return e; }
+    return { usage: 0, quota: 0 };
+  }
+};
+
+/* LS helpers */
+const LS = {
+  get: (k, fb) => { try { return JSON.parse(localStorage.getItem(k)) ?? fb; } catch { return fb; } },
+  set: (k, v)  => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+
+function fmLoad()  { return LS.get('minima_fm',  { enabled: false, fields: [{key:'title',value:'',enabled:true},{key:'date',value:'{{today}}',enabled:true},{key:'author',value:'',enabled:false},{key:'tags',value:'',enabled:false}] }); }
+function fmSave(o) { LS.set('minima_fm', o); }
+function tmLoad()  { return LS.get('minima_tpl', null) || defaultTpls(); }
+function tmSave(a) { LS.set('minima_tpl', a); }
+function lsCurGet(){ return localStorage.getItem('minima_cur') || null; }
+function lsCurSet(id){ localStorage.setItem('minima_cur', id); }
+function genId()   { return Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
+
+function defaultTpls() { return [
+  { id:'tpl-blog', name:'ブログ記事', icon:'✍️',  ext:'md', content:'# タイトル\n\n## はじめに\n\nここに導入文を書きます。\n\n## 本文\n\n## まとめ\n' },
+  { id:'tpl-note', name:'メモ',       icon:'📝',  ext:'md', content:'# メモ\n\n**日時**: {{today}}\n\n---\n\n' },
+  { id:'tpl-blank',name:'空白',       icon:'◻️', ext:'md', content:'' },
+]; }
+
+/* doc helpers */
+async function docCreate(name, content, ext='md', title='') {
+  const doc = { id:genId(), name, ext, content, title: title||'', createdAt:Date.now(), updatedAt:Date.now() };
+  await IDB.put(doc); lsCurSet(doc.id); return doc;
+}
+async function docUpdate(id, patch) {
+  const all = await IDB.getAll();
+  const doc = all?.find(d => d.id === id); if (!doc) return null;
+  const upd = { ...doc, ...patch, updatedAt:Date.now() };
+  await IDB.put(upd); return upd;
+}
+async function docDelete(id) { await IDB.del(id); }
+async function docGet(id) { const all = await IDB.getAll(); return all?.find(d => d.id === id) || null; }
+async function docAll(sort='updated') {
+  const all = await IDB.getAll() || [];
+  if (sort === 'name')    return all.sort((a,b) => a.name.localeCompare(b.name, 'ja'));
+  if (sort === 'created') return all.sort((a,b) => b.createdAt - a.createdAt);
+  return all.sort((a,b) => b.updatedAt - a.updatedAt);
+}
+
+/* FS API */
+const FS = typeof window.showSaveFilePicker === 'function';
+let fsHandle = null;
+async function fsSave(content, name, ext) {
+  try {
+    if (!fsHandle) fsHandle = await window.showSaveFilePicker({ suggestedName: name+'.'+ext, types:[{ description: ext==='md'?'Markdown':'Text', accept: ext==='md'?{'text/markdown':['.md']}:{'text/plain':['.txt']} }] });
+    const w = await fsHandle.createWritable(); await w.write(content); await w.close();
+    return { ok:true, fileName:fsHandle.name };
+  } catch(e) { return e.name==='AbortError' ? {ok:false,aborted:true} : {ok:false}; }
+}
+async function fsOpen() {
+  try {
+    const [h] = await window.showOpenFilePicker({ types:[{description:'テキストファイル',accept:{'text/*':['.md','.txt']}}], multiple:false });
+    const file = await h.getFile(); fsHandle = h;
+    return { ok:true, name:file.name, text:await file.text() };
+  } catch(e) { return e.name==='AbortError' ? {ok:false,aborted:true} : {ok:false}; }
+}
+function dlFile(content, name, ext) {
+  const a = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(new Blob([content], {type:(ext==='md'?'text/markdown':'text/plain')+';charset=utf-8'})),
+    download: name+'.'+ext
+  });
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+/* ═══ Markdown ═══ */
+function renderMd(src) {
+  const E = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  let t = src.replace(/^---\n[\s\S]*?\n---\n?/, '');
+  const blocks=[], inlines=[];
+  t = t
+    .replace(/```[\w]*\n?([\s\S]*?)```/g, (_,c) => { blocks.push(`<pre><code>${E(c.trim())}</code></pre>`); return `\x02B${blocks.length-1}\x03`; })
+    .replace(/`([^`\n]+)`/g, (_,c) => { inlines.push(`<code>${E(c)}</code>`); return `\x02I${inlines.length-1}\x03`; });
+  t = E(t);
+  // table
+  const tl = t.split('\n'); const tr = []; let i = 0;
+  while (i < tl.length) {
+    if (/^\|.+\|/.test(tl[i]) && /^\|[\s\-|:]+\|/.test(tl[i+1]||'')) {
+      const hd = tl[i].split('|').slice(1,-1).map(h=>h.trim());
+      let html = '<table><thead><tr>'+hd.map(h=>`<th>${h}</th>`).join('')+'</tr></thead><tbody>';
+      i += 2;
+      while (i < tl.length && /^\|.+\|/.test(tl[i])) { html += '<tr>'+tl[i].split('|').slice(1,-1).map(c=>`<td>${c.trim()}</td>`).join('')+'</tr>'; i++; }
+      tr.push(html+'</tbody></table>');
+    } else { tr.push(tl[i]); i++; }
+  }
+  t = tr.join('\n');
+  t = t
+    .replace(/^#{6} (.+)$/gm,'<h6>$1</h6>').replace(/^#{5} (.+)$/gm,'<h5>$1</h5>')
+    .replace(/^#{4} (.+)$/gm,'<h4>$1</h4>').replace(/^#{3} (.+)$/gm,'<h3>$1</h3>')
+    .replace(/^#{2} (.+)$/gm,'<h2>$1</h2>').replace(/^#{1} (.+)$/gm,'<h1>$1</h1>')
+    .replace(/^[-*_]{3,}\s*$/gm,'<hr>').replace(/^&gt;\s?(.+)$/gm,'<blockquote>$1</blockquote>')
+    .replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*([^*\n]+)\*/g,'<em>$1</em>')
+    .replace(/__(.+?)__/g,'<strong>$1</strong>').replace(/_([^_\n]+)_/g,'<em>$1</em>')
+    .replace(/~~(.+?)~~/g,'<del>$1</del>')
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g,'<img src="$2" alt="$1" loading="lazy">')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+  const rows = t.split('\n'), out = []; let ul=false, ol=false;
+  for (const row of rows) {
+    if (/^\s*[-*+] /.test(row))   { if(!ul){if(ol){out.push('</ol>');ol=false;}out.push('<ul>');ul=true;} out.push('<li>'+row.replace(/^\s*[-*+] /,'')+'</li>'); }
+    else if (/^\s*\d+\. /.test(row)){ if(!ol){if(ul){out.push('</ul>');ul=false;}out.push('<ol>');ol=true;} out.push('<li>'+row.replace(/^\s*\d+\. /,'')+'</li>'); }
+    else { if(ul){out.push('</ul>');ul=false;} if(ol){out.push('</ol>');ol=false;} out.push(row); }
+  }
+  if(ul)out.push('</ul>'); if(ol)out.push('</ol>');
+  t = out.join('\n').split(/\n{2,}/).map(b => {
+    b = b.trim(); if(!b) return '';
+    if (/^<(h[1-6]|ul|ol|pre|blockquote|hr|table)/.test(b) || /^\x02/.test(b)) return b;
+    return '<p>'+b.replace(/\n/g,'<br>')+'</p>';
+  }).join('\n');
+  t = t.replace(/\x02B(\d+)\x03/g,(_,i)=>blocks[+i]).replace(/\x02I(\d+)\x03/g,(_,i)=>inlines[+i]);
+  return t;
+}
+
+/* ─── Extract display title & preview from doc content ─── */
+function extractMeta(doc) {
+  const content = doc.content || '';
+  let title = doc.title || null;
+  let preview = '';
+
+  if (!title) {
+    const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
+    if (fmMatch) {
+      const m = fmMatch[1].match(/^title:\s*(.+)$/m);
+      if (m) title = m[1].trim().replace(/^["']|["']$/g, '');
+    }
+  }
+
+  const body = content.replace(/^---[\s\S]*?---\n?/, '');
+  if (!title) {
+    const h1 = body.match(/^#{1,2}\s+(.+)$/m);
+    if (h1) title = h1[1].trim();
+  }
+
+  const lines = body.split('\n')
+    .map(l => l.trim())
+    .filter(l => l && !/^#{1,6}\s/.test(l) && l !== '---' && !/^!\[/.test(l));
+  if (lines.length) {
+    preview = lines[0].replace(/^[-*>+]\s*/, '').replace(/\*\*|__|~~|\*/g, '').slice(0, 80);
+  }
+
+  return { title: title || doc.name, preview };
+}
+
+/* ═══ DOM refs ═══ */
+const editor   = document.getElementById('editor');
+const filename = document.getElementById('filename');
+const fileExt  = document.getElementById('file-ext');
+const dotUnsaved = document.getElementById('dot-unsaved');
+const stChars  = document.getElementById('st-chars');
+const stLines  = document.getElementById('st-lines');
+const stMsg    = document.getElementById('st-msg');
+const sidebar  = document.getElementById('sidebar');
+const sbOverlay= document.getElementById('sb-overlay');
+const fileList = document.getElementById('file-list');
+const sbEmpty  = document.getElementById('sb-empty');
+const toastEl  = document.getElementById('toast');
+const fileInput= document.getElementById('file-input');
+
+const S = { id:null, name:'', ext:'md', modified:false, preview:false, focus:false, sort:'updated' };
+
+/* ─── Toast ─── */
+let _tt;
+function toast(msg, ms=2200) {
+  clearTimeout(_tt); toastEl.textContent = msg; toastEl.classList.add('show');
+  _tt = setTimeout(() => toastEl.classList.remove('show'), ms);
+}
+
+/* ─── Autosave badge ─── */
+let _abt;
+function showAutosave() {
+  const el = document.getElementById('autosave-indicator');
+  clearTimeout(_abt); el.style.opacity = '1';
+  _abt = setTimeout(() => el.style.opacity = '0', 2000);
+}
+
+/* ─── Modified dot ─── */
+function setModified(v) { S.modified = v; dotUnsaved.classList.toggle('on', v); }
+
+/* ─── Stats ─── */
+function updateStats() {
+  const v = editor.value;
+  stChars.textContent = v.length.toLocaleString('ja') + ' 文字';
+  stLines.textContent = (v ? v.split('\n').length : 1).toLocaleString('ja') + ' 行';
+}
+
+/* ─── Line numbers ─── */
+function updateLineNums() {
+  const n = editor.value.split('\n').length;
+  document.getElementById('line-numbers').textContent = Array.from({length:n},(_,i)=>i+1).join('\n');
+  document.getElementById('word-count').textContent = editor.value.length.toLocaleString('ja') + ' 文字';
+}
+editor.addEventListener('scroll', () => { document.getElementById('line-numbers').scrollTop = editor.scrollTop; });
+
+/* ─── Storage indicator ─── */
+async function updateStorage() {
+  const { usage=0, quota=0 } = await IDB.estimate();
+  if (!quota) return;
+  const pct = Math.min(100, Math.round(usage/quota*100));
+  const bar  = document.getElementById('storage-bar');
+  bar.style.width = pct + '%';
+  bar.style.background = pct > 80 ? '#9a5555' : pct > 60 ? '#a07850' : '#6b5e4c';
+  const kb = Math.round(usage/1024);
+  document.getElementById('storage-text').textContent = kb > 1024 ? (kb/1024).toFixed(1)+'MB' : kb+'KB';
+}
+
+/* ─── Filename auto-width ─── */
+function resizeFn() {
+  const sp = document.createElement('span');
+  sp.style.cssText = 'position:absolute;visibility:hidden;font-family:"Noto Sans JP",sans-serif;font-size:13px;white-space:pre;';
+  sp.textContent = filename.value || 'untitled';
+  document.body.appendChild(sp);
+  filename.style.width = Math.min(180, Math.max(40, sp.offsetWidth+10)) + 'px';
+  document.body.removeChild(sp);
+}
+
+/* ─── Auto-save (IndexedDB, 800ms debounce) ─── */
+let _ast;
+function scheduleAutoSave() {
+  clearTimeout(_ast);
+  _ast = setTimeout(async () => {
+    const title = filename.value.trim() || 'untitled';
+    if (!S.id) {
+      const r = await docCreate(todayStr(true) + '-' + title, editor.value, S.ext, title);
+      S.id = r.id; S.name = r.name; lsCurSet(S.id);
+    } else {
+      await docUpdate(S.id, { title, content: editor.value, ext: S.ext });
+    }
+    setModified(false);
+    showAutosave(); stMsg.textContent = '自動保存'; setTimeout(() => stMsg.textContent='', 1800);
+    renderFileList(); updateStorage();
+  }, 800);
+}
+
+/* ─── Manual save ─── */
+async function manualSave() {
+  clearTimeout(_ast);
+  const title = filename.value.trim() || 'untitled', content = editor.value, ext = S.ext;
+  let exportName;
+  if (!S.id) {
+    exportName = todayStr(true) + '-' + title;
+    const r = await docCreate(exportName, content, ext, title); S.id = r.id;
+  } else {
+    const existing = await docGet(S.id);
+    exportName = existing?.name || (todayStr(true) + '-' + title);
+    await docUpdate(S.id, { title, content, ext });
+  }
+  setModified(false); renderFileList(); lsCurSet(S.id); updateStorage();
+  if (FS) {
+    stMsg.textContent = '保存中…';
+    const res = await fsSave(content, exportName, ext);
+    if (res.ok)           { toast('💾 '+res.fileName+' を保存しました'); stMsg.textContent = '保存しました'; }
+    else if (!res.aborted){ dlFile(content, exportName, ext); toast('⬇ '+exportName+'.'+ext+' をダウンロードしました'); stMsg.textContent = 'ダウンロード完了'; }
+    else                  { stMsg.textContent = ''; return; }
+  } else { dlFile(content, exportName, ext); toast('⬇ '+exportName+'.'+ext+' をダウンロードしました'); stMsg.textContent = 'ダウンロード完了'; }
+  setTimeout(() => stMsg.textContent = '', 2500);
+}
+
+/* ─── Open file ─── */
+async function openFile() {
+  if (S.modified && !confirm('変更が保存されていません。続けますか？')) return;
+  if (FS) {
+    const res = await fsOpen(); if (!res.ok) return;
+    const rawName = res.name.replace(/\.(md|txt)$/i,''), ext = res.name.endsWith('.txt')?'txt':'md';
+    const rec = await docCreate(rawName, res.text, ext);
+    loadIntoEditor(rec); renderFileList(); toast('📄 '+res.name+' を開きました');
+  } else { fileInput.click(); }
+}
+fileInput.addEventListener('change', async () => {
+  const file = fileInput.files[0]; if (!file) return;
+  const text = await file.text();
+  const rawName = file.name.replace(/\.(md|txt)$/i,''), ext = file.name.endsWith('.txt')?'txt':'md';
+  const rec = await docCreate(rawName, text, ext);
+  loadIntoEditor(rec); renderFileList(); toast('📄 '+file.name+' を開きました');
+  fileInput.value = '';
+});
+
+/* ─── Load into editor ─── */
+function loadIntoEditor(rec) {
+  fsHandle = null; S.id = rec.id; S.name = rec.name || ''; S.ext = rec.ext || 'md';
+  editor.value = rec.content || '';
+  // show display title (never the timestamped doc.name)
+  const displayTitle = rec.title || rec.name.replace(/^\d{8}-\d{6}-?/, '') || 'untitled';
+  filename.value = displayTitle;
+  fileExt.textContent = '.' + S.ext;
+  document.getElementById('chrome-filename').textContent = displayTitle + '.' + S.ext;
+  setModified(false); setFmt(S.ext, false); updateStats(); updateLineNums(); resizeFn();
+  if (S.preview) renderPreview();
+  lsCurSet(rec.id);
+}
+
+/* ─── New file ─── */
+function newFile() { if (S.modified && !confirm('変更が保存されていません。新規作成しますか？')) return; openNewFileModal(); }
+async function createFromTpl(tpl) {
+  clearTimeout(_ast); fsHandle = null;
+
+  const userTitle = (document.getElementById('nf-title')?.value || '').trim();
+  const titleStr  = userTitle || (tpl.id === 'tpl-blank' ? 'untitled' : tpl.name);
+  const newName   = todayStr(true) + '-' + titleStr; // YYYYMMDD-HHmmss-title
+
+  const fm = fmLoad();
+  const fmStr = buildFM(fm);
+  const tplContent = (tpl.content || '').replace(/{{today}}/g, todayStr(false));
+
+  // doc.name holds the timestamped filename; doc.title is the display-only title
+  const rec = await docCreate(newName, fmStr + tplContent, tpl.ext || S.ext, titleStr);
+  loadIntoEditor(rec); renderFileList(); closeSidebar(); closeNewFileModal();
+  editor.focus();
+  editor.setSelectionRange(fmStr.length, fmStr.length);
+}
+
+/* ─── Frontmatter ─── */
+// forFilename が true なら「YYYYMMDD-HHmmss」、false なら ISO 8601「YYYY-MM-DD」
+function todayStr(forFilename = false) {
+  const d = new Date();
+  const YYYY = d.getFullYear();
+  const MM = String(d.getMonth() + 1).padStart(2, '0');
+  const DD = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  const ss = String(d.getSeconds()).padStart(2, '0');
+
+  if (forFilename) {
+    return `${YYYY}${MM}${DD}-${hh}${mm}${ss}`;
+  }
+  return `${YYYY}-${MM}-${DD}`;
+}
+
+function buildFM(fm) {
+  if (!fm.enabled) return '';
+  const active = fm.fields.filter(f => f.enabled && f.key.trim()); if (!active.length) return '';
+  
+  const lines = active.map(f => {
+    // 【根本解決】f.value を直接書き換えず、別のローカル変数 v に代入して置換する
+    // これにより fmLoad() 側の '{{today}}' というマスターデータが未来永劫破壊されない
+    const v = f.value.replace(/{{today}}/g, todayStr(false));
+    
+    if (f.key === 'tags' && v.includes(',')) {
+      return f.key + ':\n' + v.split(',').map(s => '  - ' + s.trim()).join('\n');
+    }
+    return f.key + ': ' + v;
+  });
+  
+  return '---\n' + lines.join('\n') + '\n---\n\n';
+}
+
+// 4. 【重要】フォームを描画する際、ユーザーが入力した文字（{{today}} 等）をそのまま維持して保存する
+
+
+/* ─── Format picker ─── */
+function setFmt(ext, save=true) {
+  S.ext = ext; fileExt.textContent = '.' + ext;
+  document.querySelectorAll('.fmt-btn').forEach(b => b.classList.toggle('active', b.dataset.fmt===ext));
+  if (save && S.id) docUpdate(S.id, { ext });
+}
+document.querySelectorAll('.fmt-btn').forEach(b => b.addEventListener('click', () => { setFmt(b.dataset.fmt); fsHandle=null; }));
+
+/* ─── Sidebar ─── */
+function openSidebar()  { renderFileList(); sidebar.classList.add('open'); sbOverlay.classList.add('active'); updateStorage(); }
+function closeSidebar() { sidebar.classList.remove('open'); sbOverlay.classList.remove('active'); }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function relDate(ts) { const d=Date.now()-ts; if(d<60000)return'たった今'; if(d<3600000)return Math.floor(d/60000)+'分前'; if(d<86400000)return Math.floor(d/3600000)+'時間前'; const dt=new Date(ts); return(dt.getMonth()+1)+'/'+dt.getDate(); }
+
+/* ─── Collapsed group state ─── */
+function collapsedGet() { return new Set(LS.get('minima_collapsed', [])); }
+function collapsedToggle(key) {
+  const s = collapsedGet();
+  s.has(key) ? s.delete(key) : s.add(key);
+  LS.set('minima_collapsed', [...s]);
+}
+
+/* ─── Inline rename (updates doc.name) ─── */
+function startInlineRename(el, doc) {
+  const titleDiv = el.querySelector('.fi-title');
+  if (!titleDiv || titleDiv.querySelector('input')) return;
+  const prev = titleDiv.textContent;
+  const inp = document.createElement('input');
+  inp.className = 'fi-rename-input';
+  inp.value = prev;
+  titleDiv.innerHTML = ''; titleDiv.appendChild(inp);
+  inp.focus(); inp.select();
+  async function commit() {
+    const newTitle = inp.value.trim() || prev;
+    await docUpdate(doc.id, { title: newTitle });
+    renderFileList();
+  }
+  inp.addEventListener('blur', commit);
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter')  { e.preventDefault(); inp.blur(); }
+    if (e.key === 'Escape') { e.preventDefault(); inp.removeEventListener('blur', commit); renderFileList(); }
+    e.stopPropagation();
+  });
+}
+
+async function renderFileList() {
+  const q = (document.getElementById('sb-search').value || '').toLowerCase();
+  let files = await docAll(S.sort);
+  if (q) files = files.filter(f => {
+    const meta = extractMeta(f);
+    return f.name.toLowerCase().includes(q) ||
+           meta.title.toLowerCase().includes(q) ||
+           (f.content || '').toLowerCase().includes(q);
+  });
+
+  fileList.innerHTML = '';
+  sbEmpty.classList.toggle('show', files.length === 0);
+  if (!files.length) return;
+
+  // Group by creation month (newest first)
+  const groups = new Map();
+  files.forEach(f => {
+    const d = new Date(f.createdAt);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const label = `${d.getFullYear()}年${d.getMonth() + 1}月`;
+    if (!groups.has(key)) groups.set(key, { label, files: [] });
+    groups.get(key).files.push(f);
+  });
+  const sortedKeys = [...groups.keys()].sort((a, b) => b.localeCompare(a));
+
+  const collapsed = collapsedGet();
+
+  sortedKeys.forEach(key => {
+    const { label, files: gfiles } = groups.get(key);
+    const isCollapsed = collapsed.has(key);
+
+    const header = document.createElement('div');
+    header.className = 'sb-period-label' + (isCollapsed ? ' collapsed' : '');
+    header.innerHTML =
+      `<span>${esc(label)}</span>` +
+      `<span class="sb-period-meta">` +
+        `<span class="sb-period-count">${gfiles.length}</span>` +
+        `<span class="sb-period-chevron">▾</span>` +
+      `</span>`;
+
+    const grid = document.createElement('div');
+    grid.className = 'sb-cards-grid' + (isCollapsed ? ' collapsed' : '');
+
+    header.addEventListener('click', () => {
+      collapsedToggle(key);
+      header.classList.toggle('collapsed');
+      grid.classList.toggle('collapsed');
+    });
+    fileList.appendChild(header);
+
+    gfiles.forEach(f => {
+      const meta = extractMeta(f);
+      const ext = f.ext || 'md';
+      const el = document.createElement('div');
+      el.className = 'fi' + (f.id === S.id ? ' active' : '');
+      el.innerHTML =
+        `<div class="fi-title">${esc(meta.title)}</div>` +
+        (meta.preview ? `<div class="fi-preview">${esc(meta.preview)}</div>` : '') +
+        `<div class="fi-meta">${relDate(f.updatedAt)}</div>` +
+        `<button class="fi-del" data-id="${f.id}" title="削除">✕</button>` +
+        `<span class="fi-ext-badge">.${esc(ext)}</span>`;
+
+      el.addEventListener('click', async e => {
+        if (e.target.classList.contains('fi-del')) return;
+        if (S.modified && !confirm('変更が保存されていません。切り替えますか？')) return;
+        clearTimeout(_ast); fsHandle = null;
+        const rec = await docGet(f.id);
+        if (rec) { loadIntoEditor(rec); renderFileList(); closeSidebar(); }
+      });
+      el.addEventListener('dblclick', e => {
+        if (e.target.classList.contains('fi-del')) return;
+        e.preventDefault(); e.stopPropagation();
+        startInlineRename(el, f);
+      });
+      el.querySelector('.fi-del').addEventListener('click', async e => {
+        e.stopPropagation();
+        if (!confirm(`「${f.name}」を削除しますか？`)) return;
+        const id = e.target.dataset.id; await docDelete(id);
+        if (id === S.id) {
+          clearTimeout(_ast); fsHandle = null;
+          const rem = await docAll(S.sort);
+          if (rem.length) loadIntoEditor(rem[0]);
+          else { const r = await docCreate('untitled', ''); loadIntoEditor(r); }
+        }
+        renderFileList(); toast('削除しました'); updateStorage();
+      });
+      grid.appendChild(el);
+    });
+
+    fileList.appendChild(grid);
+  });
+}
+
+document.getElementById('sb-search').addEventListener('input', function() {
+  document.getElementById('sb-search-clear').style.display = this.value ? 'block' : 'none';
+  renderFileList();
+});
+document.getElementById('sb-search-clear').addEventListener('click', () => {
+  document.getElementById('sb-search').value = '';
+  document.getElementById('sb-search-clear').style.display = 'none';
+  renderFileList();
+});
+document.getElementById('sort-select').addEventListener('change', e => { S.sort=e.target.value; renderFileList(); });
+
+/* ─── Preview ─── */
+function renderPreview() { document.getElementById('preview-body').innerHTML = renderMd(editor.value); }
+function togglePreview() {
+  S.preview = !S.preview;
+  document.getElementById('btn-preview').classList.toggle('active', S.preview);
+  const pw = document.getElementById('preview-wrap');
+  if (S.preview) { renderPreview(); pw.classList.add('open'); } else { pw.classList.remove('open'); editor.focus(); }
+}
+document.getElementById('preview-close').addEventListener('click', () => { S.preview=false; document.getElementById('btn-preview').classList.remove('active'); document.getElementById('preview-wrap').classList.remove('open'); editor.focus(); });
+
+/* ─── Focus ─── */
+function toggleFocus() { S.focus=!S.focus; document.body.classList.toggle('focus',S.focus); document.getElementById('btn-focus').classList.toggle('active',S.focus); }
+
+/* ─── Share modal ─── */
+function openShare() {
+  document.getElementById('share-modal').classList.remove('hidden');
+  switchTab('qr');
+  document.getElementById('mail-subject').value = (filename.value.trim()||'untitled')+'.'+S.ext+' の共有';
+  document.getElementById('copy-preview').textContent = editor.value.slice(0,500)+(editor.value.length>500?'\n…':'');
+  document.getElementById('qr-canvas').style.display='none'; document.getElementById('qr-placeholder').style.display='block';
+  document.getElementById('qr-note').textContent=''; document.getElementById('btn-qr-dl').style.display='none'; document.getElementById('mail-msg').textContent='';
+}
+function closeShare() { document.getElementById('share-modal').classList.add('hidden'); }
+function switchTab(id) {
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab===id));
+  document.querySelectorAll('.tab-body').forEach(p => p.classList.toggle('active', p.id==='tb-'+id));
+}
+document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+
+function generateQR() {
+  const canvas=document.getElementById('qr-canvas'), note=document.getElementById('qr-note'), ph=document.getElementById('qr-placeholder');
+  const text = editor.value.trim(); if (!text) { note.textContent='テキストを入力してください'; return; }
+  if (typeof qrcode==='undefined') { loadQRLib(generateQR); note.textContent='読み込み中…'; return; }
+  try {
+    const qr=qrcode(0,'L'); qr.addData(text,'Byte'); qr.make();
+    ph.style.display='none'; canvas.style.display='block';
+    const mc=qr.getModuleCount(), mg=2, cs=Math.floor(210/(mc+mg*2))||2;
+    canvas.width=canvas.height=(mc+mg*2)*cs;
+    const ctx=canvas.getContext('2d'); ctx.fillStyle='#fff'; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.fillStyle='#2a2520';
+    for(let r=0;r<mc;r++) for(let c=0;c<mc;c++) if(qr.isDark(r,c)) ctx.fillRect((c+mg)*cs,(r+mg)*cs,cs,cs);
+    note.textContent=`${text.length} 文字のQRを生成しました`; document.getElementById('btn-qr-dl').style.display='inline-block';
+  } catch(e) { note.textContent='生成失敗: '+(e.message||''); canvas.style.display='none'; ph.style.display='block'; }
+}
+function loadQRLib(cb) { const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'; s.onload=cb; document.head.appendChild(s); }
+function downloadQR() { const c=document.getElementById('qr-canvas'); if(c.style.display==='none')return; Object.assign(document.createElement('a'),{download:(filename.value.trim()||'minima')+'_qr.png',href:c.toDataURL('image/png')}).click(); }
+function sendMail() {
+  const to=document.getElementById('mail-to').value.trim(), subj=document.getElementById('mail-subject').value.trim(), memo=document.getElementById('mail-memo').value.trim(), msgEl=document.getElementById('mail-msg');
+  if (!to) { msgEl.textContent='送信先を入力してください'; return; }
+  const body=(memo?memo+'\n\n---\n\n':'')+editor.value;
+  const link=`mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
+  if (link.length>8000) { msgEl.textContent='テキストが長すぎます。保存してから添付してください。'; return; }
+  window.location.href=link; msgEl.textContent='メールアプリを起動しています…'; setTimeout(()=>msgEl.textContent='',3000);
+}
+function copyText() {
+  const btn=document.getElementById('btn-copy'), t=editor.value;
+  const done=()=>{ btn.textContent='✓ コピーしました'; toast('コピーしました'); setTimeout(()=>btn.textContent='コピーする',2000); };
+  navigator.clipboard ? navigator.clipboard.writeText(t).then(done).catch(()=>fbCopy(t,done)) : fbCopy(t,done);
+}
+function fbCopy(text,cb) { const ta=Object.assign(document.createElement('textarea'),{value:text,style:'position:fixed;opacity:0'}); document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); cb(); }
+
+/* ─── New file modal ─── */
+function openNewFileModal() {
+  document.getElementById('new-file-modal').classList.remove('hidden');
+  renderNewFileModal();
+  setTimeout(() => document.getElementById('nf-title')?.focus(), 60);
+}
+function closeNewFileModal() {
+  document.getElementById('new-file-modal').classList.add('hidden');
+  const t = document.getElementById('nf-title'); if (t) t.value = '';
+}
+function renderNewFileModal() {
+  const templates = tmLoad(), fm = fmLoad();
+  const grid = document.getElementById('nf-tpl-grid'); grid.innerHTML = '';
+  templates.forEach(tpl => {
+    const btn = document.createElement('button'); btn.className = 'nf-tpl-btn';
+    btn.innerHTML = `<span class="nf-tpl-icon">${esc(tpl.icon||'📄')}</span><span class="nf-tpl-name">${esc(tpl.name)}</span>`;
+    btn.addEventListener('click', () => createFromTpl(tpl)); grid.appendChild(btn);
+  });
+  const toggle = document.getElementById('nf-fm-toggle'); toggle.checked = fm.enabled;
+  const body = document.getElementById('nf-fm-body');
+  if (fm.enabled) { body.style.maxHeight = '360px'; body.style.opacity = '1'; body.classList.remove('collapsed'); }
+  else            { body.style.maxHeight = '0';     body.style.opacity = '0'; body.classList.add('collapsed'); }
+  renderFmFields(fm);
+}
+function renderFmFields(fm) {
+  const container = document.getElementById('nf-fm-fields'); container.innerHTML = '';
+  fm.fields.forEach((f, i) => {
+    const row = document.createElement('div'); row.className = 'fm-row';
+    // ユーザーが入力した生のテキスト（esc(f.value)）をそのまま input に表示する
+    row.innerHTML = `
+      <input type="checkbox" class="fm-check" data-i="${i}" ${f.enabled?'checked':''}>
+      <input type="text" class="fm-key" value="${esc(f.key)}" data-i="${i}" placeholder="key" maxlength="32">
+      <span class="fm-sep">:</span>
+      <input type="text" class="fm-val" value="${esc(f.value)}" data-i="${i}" placeholder="value">
+      <button class="fm-del" data-i="${i}">✕</button>
+    `;
+    container.appendChild(row);
+  });
+
+  // 各種入力時、置換前の「生テキスト」をそのまま localStorage にコミットする
+  container.querySelectorAll('.fm-check').forEach(el => el.addEventListener('change', () => { const f = fmLoad(); f.fields[+el.dataset.i].enabled = el.checked; fmSave(f); }));
+  container.querySelectorAll('.fm-key').forEach(el => el.addEventListener('input', () => { const f = fmLoad(); f.fields[+el.dataset.i].key = el.value; fmSave(f); }));
+  container.querySelectorAll('.fm-val').forEach(el => el.addEventListener('input', () => { const f = fmLoad(); f.fields[+el.dataset.i].value = el.value; fmSave(f); }));
+  container.querySelectorAll('.fm-del').forEach(el => el.addEventListener('click', () => { const f = fmLoad(); f.fields.splice(+el.dataset.i, 1); fmSave(f); renderFmFields(f); }));
+}
+document.getElementById('nf-fm-toggle').addEventListener('change', e => {
+  const fm=fmLoad(); fm.enabled=e.target.checked; fmSave(fm);
+  const body=document.getElementById('nf-fm-body');
+  if (fm.enabled) { body.style.maxHeight='360px'; body.style.opacity='1'; body.classList.remove('collapsed'); }
+  else            { body.style.maxHeight='0';     body.style.opacity='0'; body.classList.add('collapsed'); }
+});
+document.getElementById('nf-fm-add').addEventListener('click', () => {
+  const fm=fmLoad(); fm.fields.push({key:'',value:'',enabled:true}); fmSave(fm); renderFmFields(fm);
+  const keys=document.getElementById('nf-fm-fields').querySelectorAll('.fm-key'); if(keys.length)keys[keys.length-1].focus();
+});
+
+/* ─── Template manager ─── */
+function openTplManager()  { document.getElementById('tpl-manager-modal').classList.remove('hidden'); renderTplList(); }
+function closeTplManager() { document.getElementById('tpl-manager-modal').classList.add('hidden'); }
+function renderTplList() {
+  const templates=tmLoad(), list=document.getElementById('tpl-list'); list.innerHTML='';
+  templates.forEach(tpl => list.appendChild(makeTplItem(tpl, false)));
+  showTplEmpty(templates.length === 0);
+}
+function makeTplItem(tpl, active) {
+  const el=document.createElement('div'); el.className='tpl-item'+(active?' active':''); el.dataset.id=tpl.id;
+  el.innerHTML=`<span class="tpl-item-icon">${esc(tpl.icon||'📄')}</span><span class="tpl-item-name">${esc(tpl.name||'無題')}</span>`;
+  el.addEventListener('click', () => selectTpl(tpl.id)); return el;
+}
+function selectTpl(id) {
+  const tpl=tmLoad().find(t=>t.id===id); if(!tpl)return;
+  document.querySelectorAll('.tpl-item').forEach(el=>el.classList.toggle('active',el.dataset.id===id));
+  document.getElementById('tpl-name').value=tpl.name||'';
+  document.getElementById('tpl-content').value=tpl.content||'';
+  document.getElementById('tpl-form').dataset.id=id;
+  showTplEmpty(false); if(window._tplRefresh)window._tplRefresh();
+}
+function showTplEmpty(empty) {
+  document.getElementById('tpl-empty').style.display=empty?'flex':'none';
+  document.getElementById('tpl-form').style.display=empty?'none':'flex';
+}
+function saveTplForm() {
+  const id=document.getElementById('tpl-form').dataset.id; if(!id)return;
+  const tpls=tmLoad(), tpl=tpls.find(t=>t.id===id); if(!tpl)return;
+  tpl.name=document.getElementById('tpl-name').value;
+  tpl.content=document.getElementById('tpl-content').value;
+  tmSave(tpls);
+  const si=document.querySelector(`.tpl-item[data-id="${id}"]`);
+  if(si) si.querySelector('.tpl-item-name').textContent=tpl.name||'無題';
+}
+document.getElementById('tpl-add-btn').addEventListener('click', () => {
+  const tpls=tmLoad(), t={id:genId(),name:'新しいテンプレート',icon:'📄',ext:'md',content:''};
+  tpls.push(t); tmSave(tpls);
+  const el=makeTplItem(t,false); document.getElementById('tpl-list').appendChild(el); el.scrollIntoView({behavior:'smooth'}); selectTpl(t.id);
+});
+document.getElementById('tpl-del-btn').addEventListener('click', () => {
+  const id=document.getElementById('tpl-form').dataset.id; if(!id)return;
+  if(!confirm('このテンプレートを削除しますか？'))return;
+  tmSave(tmLoad().filter(t=>t.id!==id));
+  document.querySelector(`.tpl-item[data-id="${id}"]`)?.remove();
+  showTplEmpty(true); document.getElementById('tpl-form').dataset.id=''; toast('削除しました');
+});
+document.getElementById('tpl-name').addEventListener('input', saveTplForm);
+document.getElementById('tpl-content').addEventListener('input', saveTplForm);
+document.getElementById('tpl-save-btn').addEventListener('click', () => { saveTplForm(); toast('保存しました'); });
+
+// tpl line numbers
+(function(){
+  const ta=document.getElementById('tpl-content'), ln=document.getElementById('tpl-line-nums'); if(!ta||!ln)return;
+  function upd(){ln.textContent=Array.from({length:ta.value.split('\n').length},(_,i)=>i+1).join('\n');}
+  ta.addEventListener('input',upd); ta.addEventListener('scroll',()=>ln.scrollTop=ta.scrollTop); upd();
+  window._tplRefresh=()=>{upd();ln.scrollTop=0;ta.scrollTop=0;};
+})();
+
+/* ─── GitHub push ─── */
+const GH = { owner:'kouta0000', repo:'kouta0000.github.io', dir:'src/data/blog', api:'https://api.github.com' };
+function ghPatLoad() { return localStorage.getItem('minima_gh_pat')||''; }
+function ghPatSave(p){ localStorage.setItem('minima_gh_pat',p); }
+function ghPatClear(){ localStorage.removeItem('minima_gh_pat'); }
+function ghStatus(type, msg) {
+  const el=document.getElementById('gh-status');
+  el.className=''; el.style.display=msg?'block':'none';
+  if(msg) { el.classList.add(type); el.textContent=msg; }
+}
+function openGithubModal() {
+  document.getElementById('github-modal').classList.remove('hidden');
+  const fname=(S.name || (todayStr(true)+'-'+(filename.value.trim()||'untitled')))+'.'+S.ext;
+  document.getElementById('gh-target-fname').textContent=fname;
+  const now=new Date();
+  document.getElementById('gh-commit-msg').value=`docs: update ${fname} (${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')})`;
+  const saved=ghPatLoad(); if(saved){document.getElementById('gh-pat').value=saved;document.getElementById('gh-pat-save').checked=true;}
+  ghStatus('',''); document.getElementById('gh-view-link').style.display='none';
+}
+function closeGithubModal() { document.getElementById('github-modal').classList.add('hidden'); }
+async function ghPush() {
+  const pat=document.getElementById('gh-pat').value.trim(), branch=document.getElementById('gh-branch').value.trim()||'main';
+  const msg=document.getElementById('gh-commit-msg').value.trim()||'docs: update via minima';
+  const fname=(S.name || (todayStr(true)+'-'+(filename.value.trim()||'untitled')))+'.'+S.ext;
+  const path=GH.dir+'/'+fname, btn=document.getElementById('gh-push-btn');
+  if(!pat){ghStatus('err','Personal Access Token を入力してください');return;}
+  document.getElementById('gh-pat-save').checked ? ghPatSave(pat) : ghPatClear();
+  clearTimeout(_ast); if(S.id) await docUpdate(S.id,{title:filename.value.trim()||'untitled',content:editor.value,ext:S.ext});
+  btn.disabled=true; btn.textContent='確認中…'; ghStatus('inf','既存ファイルを確認しています…');
+  const headers={'Authorization':'Bearer '+pat,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'};
+  try {
+    let sha=null;
+    const getRes=await fetch(`${GH.api}/repos/${GH.owner}/${GH.repo}/contents/${encodeURIComponent(path)}?ref=${branch}`,{headers});
+    if(getRes.ok){const ex=await getRes.json();sha=ex.sha;}
+    else if(getRes.status===401){ghStatus('err','認証失敗。PATのスコープ（repo）を確認してください');btn.disabled=false;btn.textContent='プッシュする';return;}
+    else if(getRes.status!==404){const ed=await getRes.json().catch(()=>({}));ghStatus('err',`エラー ${getRes.status}: ${ed.message||''}`);btn.disabled=false;btn.textContent='プッシュする';return;}
+    btn.textContent='プッシュ中…'; ghStatus('inf','GitHubにプッシュしています…');
+    const body={message:msg,content:btoa(unescape(encodeURIComponent(editor.value))),branch};if(sha)body.sha=sha;
+    const putRes=await fetch(`${GH.api}/repos/${GH.owner}/${GH.repo}/contents/${encodeURIComponent(path)}`,{method:'PUT',headers,body:JSON.stringify(body)});
+    if(putRes.ok){
+      const data=await putRes.json();
+      ghStatus('ok',`✓ ${sha?'更新':'新規作成'}しました — ${fname}`);
+      const link=document.getElementById('gh-view-link'); link.href=`https://github.com/${GH.owner}/${GH.repo}/blob/${branch}/${path}`; link.style.display='block';
+      toast('🚀 GitHubにプッシュしました'); btn.textContent='✓ 完了'; setTimeout(()=>{btn.disabled=false;btn.textContent='プッシュする';},3000);
+    } else {
+      const ed=await putRes.json().catch(()=>({}));
+      let em=`プッシュ失敗 (${putRes.status})`; if(ed.message)em+=': '+ed.message;
+      if(putRes.status===403)em='403: 権限不足。PATの repo スコープを確認してください。';
+      ghStatus('err',em); btn.disabled=false; btn.textContent='プッシュする';
+    }
+  } catch(e) { ghStatus('err','ネットワークエラー: '+e.message); btn.disabled=false; btn.textContent='プッシュする'; }
+}
+document.getElementById('github-close').addEventListener('click', closeGithubModal);
+document.getElementById('github-bg').addEventListener('click', closeGithubModal);
+document.getElementById('gh-push-btn').addEventListener('click', ghPush);
+document.getElementById('gh-pat').addEventListener('dblclick', () => { const el=document.getElementById('gh-pat'); el.type=el.type==='password'?'text':'password'; });
+
+/* ─── Editor events ─── */
+editor.addEventListener('input', () => {
+  updateStats(); setModified(true); scheduleAutoSave(); updateLineNums();
+  document.getElementById('chrome-filename').textContent=(filename.value||'untitled')+'.'+S.ext;
+  if(S.preview) renderPreview();
+});
+filename.addEventListener('input', () => {
+  resizeFn(); setModified(true); scheduleAutoSave();
+  document.getElementById('chrome-filename').textContent=(filename.value||'untitled')+'.'+S.ext;
+});
+editor.addEventListener('keydown', e => {
+  if(e.key!=='Tab')return; e.preventDefault();
+  const s=editor.selectionStart; editor.value=editor.value.slice(0,s)+'  '+editor.value.slice(editor.selectionEnd);
+  editor.selectionStart=editor.selectionEnd=s+2; setModified(true); scheduleAutoSave();
+});
+
+/* ─── Keyboard shortcuts ─── */
+document.addEventListener('keydown', e => {
+  const m = e.metaKey||e.ctrlKey;
+  if(m&&e.key==='s'){e.preventDefault();manualSave();return;}
+  if(m&&e.key==='n'){e.preventDefault();newFile();return;}
+  if(m&&e.key==='o'){e.preventDefault();openFile();return;}
+  if(m&&e.key==='p'){e.preventDefault();togglePreview();return;}
+  if(m&&e.key==='.'){e.preventDefault();toggleFocus();return;}
+  if(e.key==='Escape'){
+    const modals=[
+      ['new-file-modal',closeNewFileModal],['tpl-manager-modal',closeTplManager],
+      ['share-modal',closeShare],['github-modal',closeGithubModal]
+    ];
+    for(const[id,fn]of modals){if(!document.getElementById(id).classList.contains('hidden')){fn();return;}}
+    if(sidebar.classList.contains('open')){closeSidebar();return;}
+    if(S.preview){togglePreview();return;}
+    if(S.focus){toggleFocus();return;}
+  }
+});
+/* ─── Button wiring ─── */
+console.log("ここまでJSの実行が届いているかチェック"); // ←これを追加
+// ...以下略...
+/* ─── Button wiring ─── */
+document.getElementById('btn-sidebar').addEventListener('click', openSidebar);
+document.getElementById('btn-sb-close').addEventListener('click', closeSidebar);
+sbOverlay.addEventListener('click', closeSidebar);
+document.getElementById('btn-new').addEventListener('click', newFile);
+document.getElementById('btn-open').addEventListener('click', openFile);
+document.getElementById('btn-save').addEventListener('click', manualSave);
+document.getElementById('btn-preview').addEventListener('click', togglePreview);
+document.getElementById('btn-share').addEventListener('click', openShare);
+document.getElementById('btn-github').addEventListener('click', openGithubModal);
+document.getElementById('btn-focus').addEventListener('click', toggleFocus);
+document.getElementById('share-close').addEventListener('click', closeShare);
+document.getElementById('share-bg').addEventListener('click', closeShare);
+document.getElementById('btn-qr-gen').addEventListener('click', generateQR);
+document.getElementById('btn-qr-dl').addEventListener('click', downloadQR);
+document.getElementById('btn-mail-send').addEventListener('click', sendMail);
+document.getElementById('btn-copy').addEventListener('click', copyText);
+document.getElementById('nf-cancel').addEventListener('click', closeNewFileModal);
+document.getElementById('nf-bg').addEventListener('click', closeNewFileModal);
+document.getElementById('nf-open-tpl-mgr').addEventListener('click', () => { closeNewFileModal(); setTimeout(openTplManager, 300); });
+document.getElementById('tpl-mgr-close').addEventListener('click', closeTplManager);
+document.getElementById('tpl-mgr-bg').addEventListener('click', closeTplManager);
+
+/* ─── INIT ─── */
+/* ─── INIT ─── */
+(async function init() {
+  try {
+    // 1. マイグレーション処理
+    if (!localStorage.getItem('minima_migrated')) {
+      // 構文エラーを避けるため、即時関数ではなく安全にデータを取得する
+      let szFiles = [];
+      let minimaDocs = [];
+      
+      try {
+        szFiles = JSON.parse(localStorage.getItem('sz_files') || '[]');
+      } catch (e) {
+        szFiles = [];
+      }
+      
+      try {
+        minimaDocs = JSON.parse(localStorage.getItem('minima_docs') || '[]');
+      } catch (e) {
+        minimaDocs = [];
+      }
+
+      // 取得した配列を安全にマージしてフィルタリング
+      const old = [...szFiles, ...minimaDocs].filter(d => d?.id);
+
+      // IDB が存在し、かつ有効な関数を持っているか安全にチェック
+      if (typeof IDB !== 'undefined' && typeof IDB.put === 'function') {
+        await Promise.all(old.map(doc => IDB.put(doc)));
+      } else {
+        console.warn("minima: IDB library is not ready or missing during migration.");
+      }
+      localStorage.setItem('minima_migrated', '1');
+    }
+
+    // 2. データベース関数（docAll）の存在チェック
+    if (typeof docAll !== 'function' || typeof docCreate !== 'function' || typeof docGet !== 'function') {
+      throw new Error("Required database functions (docAll, docCreate, docGet) are not defined.");
+    }
+
+    const files = await docAll('updated');
+    const curId = typeof lsCurGet === 'function' ? lsCurGet() : null;
+
+    if (!files.length) {
+      const rec = await docCreate('ようこそ', `# ようこそ、minima へ
+
+執筆に集中するための Markdown エディタです。
+
+## ショートカット
+
+| キー | 操作 |
+|------|------|
+| ⌘S | 保存（Chrome/Edge: PCに直接書き込み） |
+| ⌘P | プレビュー |
+| ⌘. | フォーカスモード |
+| ⌘\\\\ | サイドバー |
+| ⌘N | 新規ファイル |
+
+## 自動保存
+
+テキストはブラウザの **IndexedDB** に自動保存されます（0.8秒後）。  
+⌘S を押すと PC のフォルダに直接ファイルとして書き出します（Chrome/Edge）。
+
+---
+
+**さあ、書き始めましょう。**`, 'md');
+      if (typeof loadIntoEditor === 'function') loadIntoEditor(rec);
+    } else {
+      const rec = curId ? await docGet(curId) : null;
+      if (typeof loadIntoEditor === 'function') loadIntoEditor(rec || files[0]);
+    }
+
+    // 3. UI初期化関数の安全な実行
+    if (typeof updateStats === 'function') updateStats();
+    if (typeof updateLineNums === 'function') updateLineNums();
+    if (typeof resizeFn === 'function') resizeFn();
+    if (editor && typeof editor.focus === 'function') editor.focus();
+    if (typeof updateStorage === 'function') updateStorage();
+
+    // 4. File System Access API の案内通知
+    const isFsUndefined = typeof FS === 'undefined' || !FS;
+    if (isFsUndefined && !localStorage.getItem('minima_fs_notice')) {
+      localStorage.setItem('minima_fs_notice', '1');
+      if (typeof toast === 'function') {
+        setTimeout(() => toast('💡 Chrome/Edge では ⌘S で PC に直接保存できます'), 1800);
+      }
+    }
+
+  } catch (error) {
+    console.error("minima: Initialization failed:", error);
+  }
+})();
+</script>
+</body>
+</html>
